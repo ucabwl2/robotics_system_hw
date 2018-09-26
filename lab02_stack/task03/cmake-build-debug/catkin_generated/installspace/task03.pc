@@ -1,8 +1,0 @@
-prefix=/usr/local
-
-Name: task03
-Description: Description of task03
-Version: 0.0.0
-Cflags: 
-Libs: -L/usr/local/lib 
-Requires: 
