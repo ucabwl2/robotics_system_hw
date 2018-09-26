@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: example02
+Description: Description of example02
+Version: 0.0.0
+Cflags: 
+Libs: -L/usr/local/lib 
+Requires: 

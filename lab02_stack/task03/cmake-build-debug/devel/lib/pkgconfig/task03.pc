@@ -1,0 +1,8 @@
+prefix=/home/kpach/catkin_ws/src/comp0127_lab/lab02_stack/task03/cmake-build-debug/devel
+
+Name: task03
+Description: Description of task03
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/kpach/catkin_ws/src/comp0127_lab/lab02_stack/task03/cmake-build-debug/devel/lib 
+Requires: 

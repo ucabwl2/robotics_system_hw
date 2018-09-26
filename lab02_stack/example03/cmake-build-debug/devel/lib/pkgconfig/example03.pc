@@ -1,0 +1,8 @@
+prefix=/home/kpach/catkin_ws/src/comp0127_lab/lab02_stack/example03/cmake-build-debug/devel
+
+Name: example03
+Description: Description of example03
+Version: 0.0.0
+Cflags: 
+Libs: -L/home/kpach/catkin_ws/src/comp0127_lab/lab02_stack/example03/cmake-build-debug/devel/lib 
+Requires: 

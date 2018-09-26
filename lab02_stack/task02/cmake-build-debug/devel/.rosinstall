@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /home/kpach/catkin_ws/src/comp0127_lab/lab02_stack/task02/cmake-build-debug/devel/setup.sh

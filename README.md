@@ -1,4 +1,4 @@
-# youbot_stack
+# comp0127_lab
 Collection of packages for the lab sessions in COMP0127 Robotic Systems Engineering
 
 
