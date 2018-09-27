@@ -2,17 +2,57 @@
 #include <visualization_msgs/Marker.h>
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
-#include <geometry_msgs/Transform.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/JointState.h>
 #include <gazebo_msgs/LinkStates.h>
-#include <inverse_kinematics/YoubotKDL.h>
 
 #include <boost/foreach.hpp>
+#include <Eigen/Dense>
+
 #define foreach BOOST_FOREACH
+
+using namespace Eigen;
 
 visualization_msgs::Marker reached_points, robot_trail, points;
 geometry_msgs::Point point_buffer;
 double d;
+
+double dh_a[5] = {0.033, 0.155, 0.135, 0.0, 0.0};
+double dh_d[5] = {0.147, 0.0, 0.0, 0.0, 0.183};
+double dh_alpha[5] = {M_PI_2, 0.0, 0.0, M_PI_2, 0.0};
+double dh_theta[5] = {170*M_PI/180, 65*M_PI/180 + M_PI_2, -146*M_PI/180, 102.5*M_PI/180 + M_PI_2, 167.5*M_PI/180 + M_PI};
+double joint[5];
+
+Matrix4d manual_forward_kinematics(double joint[]) {
+    Matrix4d A = MatrixXd::Identity(4, 4);
+    Matrix4d T, Ti;
+    Ti(3, 0) = 0.0;
+    Ti(3, 1) = 0.0;
+    Ti(3, 2) = 0.0;
+    Ti(3, 3) = 1.0;
+    Ti(2, 0) = 0.0;
+    for (int i = 0; i < 5; i++)
+    {
+        double input_theta = dh_theta[i] + joint[i];
+        Ti(0, 0) = cos(input_theta);
+        Ti(1, 0) = sin(input_theta);
+        Ti(0, 1) = -sin(input_theta)*cos(dh_alpha[i]);
+        Ti(1, 1) = cos(input_theta)*cos(dh_alpha[i]);
+        Ti(2, 1) = sin(dh_alpha[i]);
+        Ti(0, 2) = sin(input_theta)*sin(dh_alpha[i]);
+        Ti(1, 2) = -cos(input_theta)*sin(dh_alpha[i]);
+        Ti(2, 2) = cos(dh_alpha[i]);
+        Ti(0, 3) = dh_a[i]*cos(input_theta);
+        Ti(1, 3) = dh_a[i]*sin(input_theta);
+        Ti(2, 3) = dh_d[i];
+
+        T = Ti * A;
+    }
+
+    return A;
+
+}
+
 void update_line(const gazebo_msgs::LinkStates::ConstPtr &pos)
 {
     int L = pos->pose.size();
@@ -61,10 +101,6 @@ int main( int argc, char** argv )
     ros::Rate r(30);
 
     int checkpoint_data = atoi(argv[1]);
-
-    YoubotKDL youbot;
-    youbot.init();
-    KDL::Frame current_pose;
 
     //Define points message
     points.header.frame_id = robot_trail.header.frame_id = reached_points.header.frame_id = "/base_link";
@@ -133,17 +169,15 @@ int main( int argc, char** argv )
             if (s != NULL)
             {
 
-                KDL::JntArray joint;
-                joint.resize(5);
                 for (int i = 0; i < 5; i++)
-                    joint.data(i) = s->position.at(i);
+                    joint[i] = s->position.at(i);
 
-                current_pose = youbot.forward_kinematics(joint, youbot.current_pose);
+                Matrix4d current_pose = manual_forward_kinematics(joint);
 
                 geometry_msgs::Point p;
-                p.x = current_pose.p.x();
-                p.y = current_pose.p.y();
-                p.z = current_pose.p.z();
+                p.x = current_pose(0, 3);
+                p.y = current_pose(1, 3);
+                p.z = current_pose(2, 3);
                 points.points.push_back(p);
             }
 
