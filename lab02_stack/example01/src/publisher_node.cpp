@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "std_msgs/String.h"
+#include "std_msgs/Float64MultiArray.h"
 
 int main(int argc, char **argv)
 {
@@ -8,21 +8,18 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    ros::Publisher pub = nh.advertise<std_msgs::String>("/chatter", 1000);
+    ros::Publisher pub = nh.advertise<std_msgs::Float64MultiArray>("/chatter", 1000);
 
     ros::Rate loop_rate(10);
+    std_msgs::Float64MultiArray msg;
 
     int count = 0;
 
     while (ros::ok())
     {
 
-        std_msgs::String msg;
 
-        std::stringstream pub_string;
-
-        pub_string << "hello world at" << count;
-        msg.data = pub_string.str();
+        msg.data.push_back(count);
 
         pub.publish(msg);
 

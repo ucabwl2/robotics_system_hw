@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 import rospy
-from std_msgs.msg import String
+from std_msgs.msg import Float64MultiArray
 
-
-def callback(data):
-    rospy.loginfo("Incoming message: %s", data.data)
+def callback(msg):
+    print 'Incoming message: ', msg.data
 
 
 def listener():
 
     rospy.init_node('listener', anonymous=True)
 
-    sub = rospy.Subscriber("chatter", String, callback)
+    sub = rospy.Subscriber("chatter", Float64MultiArray, callback)
 
     rospy.spin()
 

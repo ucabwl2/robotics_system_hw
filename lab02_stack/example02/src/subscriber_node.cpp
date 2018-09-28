@@ -1,15 +1,15 @@
 #include "ros/ros.h"
-#include "std_msgs/Float64MultiArray.h"
+#include "geometry_msgs/PointStamped.h"
 
-void subscribeCallback(const std_msgs::Float64MultiArray::ConstPtr& msg)
+double x = 0;
+double y = 0;
+
+void subscribeCallback(const geometry_msgs::PointStamped::ConstPtr& msg, int input1, int input2)
 {
 
-    printf("Incoming array: [");
-
-    for (std::vector<double>::const_iterator it = msg->data.begin(); it != msg->data.end(); ++it)
-        printf("%.0f ", *it);
-
-    printf("]\n");
+    //Add some offset
+    x = msg->point.x + input1;
+    y = msg->point.y - input2;
 
 }
 
@@ -19,8 +19,21 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    ros::Subscriber sub = nh.subscribe("/chatter", 1000, subscribeCallback);
-    ros::spin();
+    int test_input1 = 10;
+    int test_input2 = -10;
+
+    //The template for the definition of the subscriber should specify the type of the topic you are subscribing and
+    //should remain like this
+    //boost::bind(subscribeFunction, _1, arg1, arg2, arg3, ..., argN)
+    ros::Subscriber sub = nh.subscribe<geometry_msgs::PointStamped>("/publish_point", 1000,
+                                                                    boost::bind(subscribeCallback, _1, test_input1, test_input2));
+    while (nh.ok())
+    {
+        printf("The current point is (%.3f, %.3f)\n", x, y);
+        ros::spinOnce();
+        //Sleep for 20usec to prevent flooding
+        usleep(20);
+    }
 
     return 0;
 }

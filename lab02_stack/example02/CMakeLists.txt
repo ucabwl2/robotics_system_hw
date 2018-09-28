@@ -10,6 +10,7 @@ project(example02)
 find_package(catkin REQUIRED COMPONENTS
         roscpp
         rospy
+        geometry_msgs
         std_msgs
         )
 

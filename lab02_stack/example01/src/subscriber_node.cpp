@@ -1,9 +1,16 @@
 #include "ros/ros.h"
-#include "std_msgs/String.h"
+#include "std_msgs/Float64MultiArray.h"
 
-void subscribeCallback(const std_msgs::String::ConstPtr& msg)
+void subscribeCallback(const std_msgs::Float64MultiArray::ConstPtr& msg)
 {
-    ROS_INFO("Incoming message: %s", msg->data.c_str());
+
+    printf("Incoming array: [");
+
+    for (std::vector<double>::const_iterator it = msg->data.begin(); it != msg->data.end(); ++it)
+        printf("%.0f ", *it);
+
+    printf("]\n");
+
 }
 
 int main(int argc, char **argv)

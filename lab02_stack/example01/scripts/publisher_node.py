@@ -1,16 +1,23 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import String
+from std_msgs.msg import Float64MultiArray
 
 def talker():
-    pub = rospy.Publisher('chatter', String, queue_size=10)
+
+    pub = rospy.Publisher('chatter', Float64MultiArray, queue_size=10)
     rospy.init_node('talker', anonymous=True)
     rate = rospy.Rate(10) # 10hz
     count = 0
+
+    num_msg = Float64MultiArray()
+    num_msg.data = []
+
     while not rospy.is_shutdown():
-        hello_str = "hello world at " + str(count)
-        pub.publish(hello_str)
+
+        num_msg.data.append(count)
+
+        pub.publish(num_msg)
         rate.sleep()
         count += 1
 

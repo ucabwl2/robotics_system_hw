@@ -1,5 +1,5 @@
 #include "ros/ros.h"
-#include "std_msgs/Float64MultiArray.h"
+#include "geometry_msgs/PointStamped.h"
 
 int main(int argc, char **argv)
 {
@@ -8,25 +8,31 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    ros::Publisher pub = nh.advertise<std_msgs::Float64MultiArray>("/chatter", 1000);
+    ros::Publisher pub = nh.advertise<geometry_msgs::PointStamped>("/publish_point", 1000);
 
     ros::Rate loop_rate(10);
-    std_msgs::Float64MultiArray msg;
 
-    int count = 0;
+    int radius = 5;
+    int period = 5;
+    geometry_msgs::PointStamped msg;
+
+    double starting_time =ros::Time::now().toSec();
 
     while (ros::ok())
     {
 
+        msg.header.stamp = ros::Time::now();
 
-        msg.data.push_back(count);
+        //Publish the position on a 5 unit radius-circle
+        msg.point.x = radius * cos(2 * M_PI * (msg.header.stamp.toSec() - starting_time)/period);
+        msg.point.y = radius * sin(2 * M_PI * (msg.header.stamp.toSec() - starting_time)/period);
+        msg.point.z = 0;
 
         pub.publish(msg);
 
         ros::spinOnce();
 
         loop_rate.sleep();
-        count++;
     }
 
 

@@ -20,13 +20,13 @@ find_package(Eigen3 REQUIRED)
 find_package(orocos_kdl REQUIRED)
 
 set(HEADER_FILES
-        include/YoubotKDL.h
-		include/YoubotKinematics.h)
+		include/youbot_kinematic/YoubotKDL.h
+		include/youbot_kinematic/YoubotKinematics.h)
 
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES youbot_kinematic
-#  CATKIN_DEPENDS 
+  CATKIN_DEPENDS geometry_msgs roscpp sensor_msgs tf2_ros tf
   DEPENDS orocos_kdl EIGEN3
 )
 

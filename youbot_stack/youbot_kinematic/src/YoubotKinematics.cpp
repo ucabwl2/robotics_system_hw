@@ -1,4 +1,4 @@
-#include <YoubotKinematics.h>
+#include <youbot_kinematic/YoubotKinematics.h>
 
 void YoubotKinematics::init()
 {

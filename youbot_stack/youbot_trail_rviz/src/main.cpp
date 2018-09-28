@@ -2,57 +2,17 @@
 #include <visualization_msgs/Marker.h>
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
-#include <geometry_msgs/TransformStamped.h>
+#include <geometry_msgs/Transform.h>
 #include <sensor_msgs/JointState.h>
 #include <gazebo_msgs/LinkStates.h>
+#include <youbot_kinematic/YoubotKDL.h>
 
 #include <boost/foreach.hpp>
-#include <Eigen/Dense>
-
 #define foreach BOOST_FOREACH
-
-using namespace Eigen;
 
 visualization_msgs::Marker reached_points, robot_trail, points;
 geometry_msgs::Point point_buffer;
 double d;
-
-double dh_a[5] = {0.033, 0.155, 0.135, 0.0, 0.0};
-double dh_d[5] = {0.147, 0.0, 0.0, 0.0, 0.183};
-double dh_alpha[5] = {M_PI_2, 0.0, 0.0, M_PI_2, 0.0};
-double dh_theta[5] = {170*M_PI/180, 65*M_PI/180 + M_PI_2, -146*M_PI/180, 102.5*M_PI/180 + M_PI_2, 167.5*M_PI/180 + M_PI};
-double joint[5];
-
-Matrix4d manual_forward_kinematics(double joint[]) {
-    Matrix4d A = MatrixXd::Identity(4, 4);
-    Matrix4d T, Ti;
-    Ti(3, 0) = 0.0;
-    Ti(3, 1) = 0.0;
-    Ti(3, 2) = 0.0;
-    Ti(3, 3) = 1.0;
-    Ti(2, 0) = 0.0;
-    for (int i = 0; i < 5; i++)
-    {
-        double input_theta = dh_theta[i] + joint[i];
-        Ti(0, 0) = cos(input_theta);
-        Ti(1, 0) = sin(input_theta);
-        Ti(0, 1) = -sin(input_theta)*cos(dh_alpha[i]);
-        Ti(1, 1) = cos(input_theta)*cos(dh_alpha[i]);
-        Ti(2, 1) = sin(dh_alpha[i]);
-        Ti(0, 2) = sin(input_theta)*sin(dh_alpha[i]);
-        Ti(1, 2) = -cos(input_theta)*sin(dh_alpha[i]);
-        Ti(2, 2) = cos(dh_alpha[i]);
-        Ti(0, 3) = dh_a[i]*cos(input_theta);
-        Ti(1, 3) = dh_a[i]*sin(input_theta);
-        Ti(2, 3) = dh_d[i];
-
-        T = Ti * A;
-    }
-
-    return A;
-
-}
-
 void update_line(const gazebo_msgs::LinkStates::ConstPtr &pos)
 {
     int L = pos->pose.size();
@@ -80,8 +40,8 @@ void update_point()
         for (int j = 0; j < points.points.size(); j++)
         {
             d = sqrt(pow(robot_trail.points.at(i).x - points.points.at(j).x, 2) +
-                             pow(robot_trail.points.at(i).y - points.points.at(j).y, 2) +
-                             pow(robot_trail.points.at(i).z - points.points.at(j).z, 2));
+                     pow(robot_trail.points.at(i).y - points.points.at(j).y, 2) +
+                     pow(robot_trail.points.at(i).z - points.points.at(j).z, 2));
             if (d < 0.02)
             {
                 reached_points.points.push_back(points.points.at(j));
@@ -101,6 +61,10 @@ int main( int argc, char** argv )
     ros::Rate r(30);
 
     int checkpoint_data = atoi(argv[1]);
+
+    YoubotKDL youbot;
+    youbot.init();
+    KDL::Frame current_pose;
 
     //Define points message
     points.header.frame_id = robot_trail.header.frame_id = reached_points.header.frame_id = "/base_link";
@@ -163,63 +127,65 @@ int main( int argc, char** argv )
         topics.push_back(std::string("joint_data"));
         rosbag::View view(bag, rosbag::TopicQuery(topics));
 
-        foreach(rosbag::MessageInstance const m, view)
-        {
-            sensor_msgs::JointState::ConstPtr s = m.instantiate<sensor_msgs::JointState>();
-            if (s != NULL)
-            {
+                foreach(rosbag::MessageInstance const m, view)
+                    {
+                        sensor_msgs::JointState::ConstPtr s = m.instantiate<sensor_msgs::JointState>();
+                        if (s != NULL)
+                        {
 
-                for (int i = 0; i < 5; i++)
-                    joint[i] = s->position.at(i);
+                            KDL::JntArray joint;
+                            joint.resize(5);
+                            for (int i = 0; i < 5; i++)
+                                joint.data(i) = s->position.at(i);
 
-                Matrix4d current_pose = manual_forward_kinematics(joint);
+                            current_pose = youbot.forward_kinematics(joint, youbot.current_pose);
 
-                geometry_msgs::Point p;
-                p.x = current_pose(0, 3);
-                p.y = current_pose(1, 3);
-                p.z = current_pose(2, 3);
-                points.points.push_back(p);
-            }
+                            geometry_msgs::Point p;
+                            p.x = current_pose.p.x();
+                            p.y = current_pose.p.y();
+                            p.z = current_pose.p.z();
+                            points.points.push_back(p);
+                        }
 
-        }
+                    }
     }
     else if (checkpoint_data == 2)
     {
         topics.push_back(std::string("target_tf"));
         rosbag::View view(bag, rosbag::TopicQuery(topics));
 
-        foreach(rosbag::MessageInstance const m, view)
-        {
-            geometry_msgs::TransformStamped::ConstPtr s = m.instantiate<geometry_msgs::TransformStamped>();
-            if (s != NULL)
-            {
-                geometry_msgs::Point p;
-                p.x = s->transform.translation.x;
-                p.y = s->transform.translation.y;
-                p.z = s->transform.translation.z;
-                points.points.push_back(p);
-            }
+                foreach(rosbag::MessageInstance const m, view)
+                    {
+                        geometry_msgs::TransformStamped::ConstPtr s = m.instantiate<geometry_msgs::TransformStamped>();
+                        if (s != NULL)
+                        {
+                            geometry_msgs::Point p;
+                            p.x = s->transform.translation.x;
+                            p.y = s->transform.translation.y;
+                            p.z = s->transform.translation.z;
+                            points.points.push_back(p);
+                        }
 
-        }
+                    }
     }
     else
     {
         topics.push_back(std::string("target_position"));
         rosbag::View view(bag, rosbag::TopicQuery(topics));
 
-        foreach(rosbag::MessageInstance const m, view)
-        {
-            geometry_msgs::Point::ConstPtr s = m.instantiate<geometry_msgs::Point>();
-            if (s != NULL)
-            {
-                geometry_msgs::Point p;
-                p.x = s->x;
-                p.y = s->y;
-                p.z = s->z;
-                points.points.push_back(p);
-            }
+                foreach(rosbag::MessageInstance const m, view)
+                    {
+                        geometry_msgs::Point::ConstPtr s = m.instantiate<geometry_msgs::Point>();
+                        if (s != NULL)
+                        {
+                            geometry_msgs::Point p;
+                            p.x = s->x;
+                            p.y = s->y;
+                            p.z = s->z;
+                            points.points.push_back(p);
+                        }
 
-        }
+                    }
     }
 
     bag.close();

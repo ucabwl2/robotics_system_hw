@@ -8,15 +8,14 @@ project(youbot_trail_rviz)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  rosbag
-  roscpp
-  visualization_msgs
-  geometry_msgs
-  sensor_msgs
-  gazebo_msgs
+        rosbag
+        roscpp
+        visualization_msgs
+        geometry_msgs
+        sensor_msgs
+        gazebo_msgs
+        youbot_kinematic
 )
-
-find_package(Eigen3 REQUIRED)
 
 add_definitions(-DMY_BAG_PATH1="${PROJECT_SOURCE_DIR}/bags/data_q4a.bag")
 add_definitions(-DMY_BAG_PATH2="${PROJECT_SOURCE_DIR}/bags/data_q4b.bag")
@@ -33,9 +32,7 @@ add_definitions(-DMY_BAG_PATH5="${PROJECT_SOURCE_DIR}/bags/data_extra.bag")
 ## Your package locations should be listed before other locations
 include_directories(
 # include
-  ${catkin_INCLUDE_DIRS}
-        ${EIGEN3_INCLUDE_DIRS}
-        $ENV{EIGEN3_INCLUDE_DIR}
+        ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library

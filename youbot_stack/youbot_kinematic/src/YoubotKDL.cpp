@@ -1,4 +1,4 @@
-#include <YoubotKDL.h>
+#include <youbot_kinematic/YoubotKDL.h>
 
 void YoubotKDL::init()
 {
