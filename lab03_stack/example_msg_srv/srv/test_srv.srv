@@ -1,0 +1,4 @@
+geometry_msgs/Transform input_transform
+---
+std_msgs/Float64MultiArray joint1
+std_msgs/Float64MultiArray joint2
