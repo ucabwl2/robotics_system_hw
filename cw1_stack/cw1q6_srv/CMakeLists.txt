@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(example_msg_srv)
+project(cw1q6_srv)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -15,18 +15,12 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
 )
 
-
-## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  test_msg.msg
-)
-
 ## Generate services in the 'srv' folder
 add_service_files(
   FILES
-  test_srv.srv
-  rotate_point.srv
+  quat2zyx.srv
+  quat2angleaxis.srv
+  rotmat2quat.srv
 )
 
 ## Generate added messages and services with any dependencies listed here
@@ -55,4 +49,3 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
-
