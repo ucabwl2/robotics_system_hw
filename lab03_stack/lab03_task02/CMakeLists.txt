@@ -25,6 +25,9 @@ include_directories(
 add_executable(${PROJECT_NAME}_pub_node src/lab03_task02_pub_node.cpp)
 add_executable(${PROJECT_NAME}_sub_node src/lab03_task02_sub_node.cpp)
 
+add_dependencies(${PROJECT_NAME}_pub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_sub_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_pub_node
   ${catkin_LIBRARIES}
