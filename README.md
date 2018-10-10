@@ -8,3 +8,6 @@ Dependencies:
 Note:
 In case you use the ROS distribution rather than kinetic, e.g. jade, melodic, etc, you can change `kinetic` in the command to match your distribution accordingly.
 `sudo apt install ros-<distro>-controller-manager ros-<distro>-joint-state-controller ros-<distro>-effort-controllers ros-<distro>-gazebo-ros-control ros-<distro>-joint-trajectory-controller ros-<distro>-velocity-controllers ros-<distro>-ros-controllers`
+
+References:
+youbot_description: https://github.com/youbot
