@@ -10,4 +10,6 @@ In case you use the ROS distribution rather than kinetic, e.g. jade, melodic, et
 `sudo apt install ros-<distro>-controller-manager ros-<distro>-joint-state-controller ros-<distro>-effort-controllers ros-<distro>-gazebo-ros-control ros-<distro>-joint-trajectory-controller ros-<distro>-velocity-controllers ros-<distro>-ros-controllers`
 
 References:
-youbot_description: https://github.com/youbot
+- youbot_description 'https://github.com/youbot'
+- manipulator_h_description 'https://github.com/ROBOTIS-GIT/ROBOTIS-MANIPULATOR-H'
+- open_manipulator_description 'https://github.com/ROBOTIS-GIT/open_manipulator'
