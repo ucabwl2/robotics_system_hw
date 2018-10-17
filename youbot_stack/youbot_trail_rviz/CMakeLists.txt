@@ -17,12 +17,11 @@ find_package(catkin REQUIRED COMPONENTS
         youbot_kinematic
 )
 
-add_definitions(-DMY_BAG_PATH1="${PROJECT_SOURCE_DIR}/bags/data_q4a.bag")
-add_definitions(-DMY_BAG_PATH2="${PROJECT_SOURCE_DIR}/bags/data_q4b.bag")
-add_definitions(-DMY_BAG_PATH3="${PROJECT_SOURCE_DIR}/bags/data_q4c.bag")
-add_definitions(-DMY_BAG_PATH4="${PROJECT_SOURCE_DIR}/bags/data_q4d.bag")
-add_definitions(-DMY_BAG_PATH5="${PROJECT_SOURCE_DIR}/bags/data_extra.bag")
+add_definitions(-DMY_BAG_PATH1="${PROJECT_SOURCE_DIR}/bags/data1.bag")
+add_definitions(-DMY_BAG_PATH2="${PROJECT_SOURCE_DIR}/bags/data2.bag")
+add_definitions(-DMY_BAG_PATH3="${PROJECT_SOURCE_DIR}/bags/data3.bag")
 
+catkin_package()
 
 ###########
 ## Build ##

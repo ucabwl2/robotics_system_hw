@@ -110,13 +110,13 @@ int main( int argc, char** argv )
 
     rosbag::Bag bag;
 
+    std::cout << checkpoint_data << std::endl;
+
     switch (checkpoint_data)
     {
         case 1: bag.open(MY_BAG_PATH1, rosbag::bagmode::Read); break;
         case 2: bag.open(MY_BAG_PATH2, rosbag::bagmode::Read); break;
         case 3: bag.open(MY_BAG_PATH3, rosbag::bagmode::Read); break;
-        case 4: bag.open(MY_BAG_PATH4, rosbag::bagmode::Read); break;
-        case 5: bag.open(MY_BAG_PATH5, rosbag::bagmode::Read); break;
         default: ROS_ERROR("Invalid input."); return 0; break;
     }
 
@@ -144,25 +144,6 @@ int main( int argc, char** argv )
                             p.x = current_pose.p.x();
                             p.y = current_pose.p.y();
                             p.z = current_pose.p.z();
-                            points.points.push_back(p);
-                        }
-
-                    }
-    }
-    else if (checkpoint_data == 2)
-    {
-        topics.push_back(std::string("target_tf"));
-        rosbag::View view(bag, rosbag::TopicQuery(topics));
-
-                foreach(rosbag::MessageInstance const m, view)
-                    {
-                        geometry_msgs::TransformStamped::ConstPtr s = m.instantiate<geometry_msgs::TransformStamped>();
-                        if (s != NULL)
-                        {
-                            geometry_msgs::Point p;
-                            p.x = s->transform.translation.x;
-                            p.y = s->transform.translation.y;
-                            p.z = s->transform.translation.z;
                             points.points.push_back(p);
                         }
 
