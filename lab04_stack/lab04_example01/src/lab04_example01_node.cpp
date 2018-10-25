@@ -4,10 +4,10 @@
 #include <tf2_ros/transform_broadcaster.h>
 #include <sensor_msgs/JointState.h>
 
-double a[6] = {0.0, 0.26569, 0.03, 0.0, 0.0, 0.0};
+double a[6] = {0.0, 0.265699, 0.03, 0.0, 0.0, 0.0};
 double alpha[6] = {-M_PI_2, 0.0, -M_PI_2, -M_PI_2, -M_PI_2, 0.0};
-double d[6] = {0.126, 0.0, 0.0, 0.258, 0.0, 0.0};
-double theta[6] = {0.0, -M_PI_2, 0.0, 0.0, 0.0, 0.0};
+double d[6] = {0.159, 0.0, 0.0, 0.258, 0.0, -0.123};
+double theta[6] = {0.0, -M_PI_2 + atan(0.03/0.264), -atan(0.03/0.264), 0.0, 0.0, 0.0};
 
 Eigen::Matrix4d fkine_standard(double a, double alpha, double d, double theta)
 {
@@ -58,8 +58,10 @@ void fkine(const sensor_msgs::JointState::ConstPtr& joint_msg, tf2_ros::Transfor
     for (int i = 0; i < 6; i++)
     {
 
-        A = fkine_standard(a[i], alpha[i], d[i], joint_msg->position.at(i) + theta[i]);
-
+        if ((i == 5) || (i == 4))
+            A = fkine_standard(a[i], alpha[i], d[i], -joint_msg->position.at(i) + theta[i]);
+        else
+            A = fkine_standard(a[i], alpha[i], d[i], joint_msg->position.at(i) + theta[i]);
 
         T = T * A;
 

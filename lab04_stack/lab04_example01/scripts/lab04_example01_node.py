@@ -7,16 +7,16 @@ from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TransformStamped, Quaternion
 import tf2_ros
 
-a = [0.0, 0.26569, 0.03, 0.0, 0.0, 0.0]
+a = [0.0, 0.265699, 0.03, 0.0, 0.0, 0.0]
 alpha = [-pi/2, 0.0, -pi/2, -pi/2, -pi/2, 0.0]
-d = [0.126, 0.0, 0.0, 0.258, 0.0, 0.0]
-theta = [0.0, -pi/2, 0.0, 0.0, 0.0, 0.0]
+d = [0.159, 0.0, 0.0, 0.258, 0.0, -0.123]
+theta = [0.0, -pi/2+np.arctan(0.03/0.264), -np.arctan(0.03/0.264), 0.0, 0.0, 0.0]
 
 name_link = ['fkine_link_1', 'fkine_link_2', 'fkine_link_3', 'fkine_link_4', 'fkine_link_5', 'fkine_link_6']
 
 ##Declaring a transformBroadcaster like this is not a very optimal way.
 ##The very optimal way is to create a "class" for it.
-##We will ask you to do this in the last Coursework. :)
+##We will ask you to do this in the next Coursework. :)
 
 br = tf2_ros.TransformBroadcaster()
 
@@ -71,7 +71,10 @@ def fkine(joint_msg):
     transform = TransformStamped()
     for i in range(6):
 
-        A = fkine_standard(a[i], alpha[i], d[i], theta[i] + joint_msg.position[i])
+        if (i == 4) or (i == 5):
+            A = fkine_standard(a[i], alpha[i], d[i], theta[i] - joint_msg.position[i])
+        else:
+            A = fkine_standard(a[i], alpha[i], d[i], theta[i] + joint_msg.position[i])
 
         transform.header.stamp = rospy.Time.now()
         transform.header.frame_id = 'world'
