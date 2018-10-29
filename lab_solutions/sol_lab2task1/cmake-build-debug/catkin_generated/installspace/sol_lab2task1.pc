@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: sol_lab2task1
+Description: Description of sol_lab2task1
+Version: 0.0.0
+Cflags: 
+Libs: -L/usr/local/lib 
+Requires: 
