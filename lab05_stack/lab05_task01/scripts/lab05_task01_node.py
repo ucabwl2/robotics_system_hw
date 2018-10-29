@@ -5,10 +5,10 @@ from math import pi
 import numpy as np
 from sensor_msgs.msg import JointState
 
-a = [0.0, 0.26569, 0.03, 0.0, 0.0, 0.0]
+a = [0.0, 0.265699, 0.03, 0.0, 0.0, 0.0]
 alpha = [-pi/2, 0.0, -pi/2, -pi/2, -pi/2, 0.0]
-d = [0.126, 0.0, 0.0, 0.258, 0.0, 0.0]
-theta = [0.0, -pi/2, 0.0, 0.0, 0.0, 0.0]
+d = [0.159, 0.0, 0.0, 0.258, 0.0, -0.123]
+theta = [0.0, -pi/2+np.arctan(0.03/0.264), -np.arctan(0.03/0.264), 0.0, 0.0, 0.0]
 
 
 def fkine_standard(a, alpha, d, theta):
