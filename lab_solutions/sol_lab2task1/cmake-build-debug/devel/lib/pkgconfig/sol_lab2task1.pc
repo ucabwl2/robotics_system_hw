@@ -1,8 +1,0 @@
-prefix=/home/kpach/catkin_ws/src/comp0127_lab/lab_solutions/sol_lab2task1/cmake-build-debug/devel
-
-Name: sol_lab2task1
-Description: Description of sol_lab2task1
-Version: 0.0.0
-Cflags: 
-Libs: -L/home/kpach/catkin_ws/src/comp0127_lab/lab_solutions/sol_lab2task1/cmake-build-debug/devel/lib 
-Requires: 
