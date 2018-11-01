@@ -2,10 +2,10 @@
 
 void hArm_kinematic::init()
 {
-    DH_params[0][0] = 0.0;     DH_params[1][0] = 0.26569; DH_params[2][0] = 0.03;    DH_params[3][0] = 0.0;     DH_params[4][0] = 0.0;     DH_params[5][0] = 0.0;
-    DH_params[0][1] = -M_PI_2; DH_params[1][1] = 0.0;     DH_params[2][1] = -M_PI_2; DH_params[3][1] = -M_PI_2; DH_params[4][1] = -M_PI_2; DH_params[5][1] = 0.0;
-    DH_params[0][2] = 0.126;   DH_params[1][2] = 0.0;     DH_params[2][2] = 0.0;     DH_params[3][2] = 0.258;   DH_params[4][2] = 0.0;     DH_params[5][2] = 0.0;
-    DH_params[0][3] = 0.0;     DH_params[1][3] = -M_PI_2; DH_params[2][3] = 0.0;     DH_params[3][3] = 0.0;     DH_params[4][3] = 0.0;     DH_params[5][3] = 0.0;
+    DH_params[0][0] = 0.0;     DH_params[1][0] = 0.26569;                    DH_params[2][0] = 0.03;              DH_params[3][0] = 0.0;     DH_params[4][0] = 0.0;     DH_params[5][0] = 0.0;
+    DH_params[0][1] = -M_PI_2; DH_params[1][1] = 0.0;                        DH_params[2][1] = -M_PI_2;           DH_params[3][1] = -M_PI_2; DH_params[4][1] = -M_PI_2; DH_params[5][1] = 0.0;
+    DH_params[0][2] = 0.159;   DH_params[1][2] = 0.0;                        DH_params[2][2] = 0.0;               DH_params[3][2] = 0.258;   DH_params[4][2] = 0.0;     DH_params[5][2] = -0.123;
+    DH_params[0][3] = 0.0;     DH_params[1][3] = -M_PI_2 + atan(0.03/0.264); DH_params[2][3] = -atan(0.03/0.264); DH_params[3][3] = 0.0;     DH_params[4][3] = 0.0;     DH_params[5][3] = 0.0;
 
     joint_limit_min[0] = -M_PI;
     joint_limit_min[1] = -M_PI_2;
@@ -67,7 +67,11 @@ Matrix4d hArm_kinematic::forward_kine(double joint_val[], int frame)
 
     for(int i = 0;i < frame; i++)
     {
-        A = dh_matrix_standard(DH_params[i][0], DH_params[i][1], DH_params[i][2], joint_val[i] + DH_params[i][3]);
+        if ((i == 5) || (i == 4))
+            A = dh_matrix_standard(DH_params[i][0], DH_params[i][1], DH_params[i][2], -joint_val[i] + DH_params[i][3]);
+        else
+            A = dh_matrix_standard(DH_params[i][0], DH_params[i][1], DH_params[i][2], joint_val[i] + DH_params[i][3]);
+
         T = T * A;
     }
 
@@ -91,6 +95,8 @@ void hArm_kinematic::broadcast_pose(Matrix4d pose)
 
 void hArm_kinematic::publish_joint_trajectory(trajectory_msgs::JointTrajectoryPoint joint_trajectory, int tfs)
 {
+
+    //This function can be used to publish joint trajectory. Or you can implement it yourself.
     trajectory_msgs::JointTrajectory msg;
 
     msg.header.stamp = ros::Time::now();
@@ -133,6 +139,7 @@ MatrixXd hArm_kinematic::inverse_kine_closed_form(Matrix4d pose)
     double a2 = DH_params[1][0];
     double a3 = DH_params[2][0];
     double d1 = DH_params[0][2];
+    double d6 = DH_params[5][2];
     double d4 = DH_params[3][2];
     double beta = atan2(d4, a3);
 
@@ -150,39 +157,52 @@ MatrixXd hArm_kinematic::inverse_kine_closed_form(Matrix4d pose)
     //Solve for theta3
     for (int i = 0; i < 2; i++)
     {
-        Matrix4d pose16 = dh_matrix_standard(DH_params[0][0], DH_params[0][1], DH_params[0][2], DH_params[0][3] + inv_kine_sol(4*i, 0)).inverse()*pose;
+        if (sin(inv_kine_sol(4*i, 0)) == 0)
+            K = pow((pose(0, 3) - d6*pose(0, 2))/(cos(inv_kine_sol(4*i, 0))), 2) + pow(pose(2, 3) - d1 - d6*pose(2, 2), 2) - pow(a3, 2) - pow(a2, 2) - pow(d4, 2);
+        else
+            K = pow((pose(1, 3) - d6*pose(1, 2))/(sin(inv_kine_sol(4*i, 0))), 2) + pow(pose(2, 3) - d1 - d6*pose(2, 2), 2) - pow(a3, 2) - pow(a2, 2) - pow(d4, 2);
 
-        K = (pow(pose16(0, 3), 2) + pow(pose16(1, 3), 2) - pow(a3, 2) - pow(a2, 2) - pow(d4, 2))/(2*a2*sqrt(pow(a3, 2) + pow(d4, 2)));
+        K = K/(2*a2*sqrt(pow(a3, 2) + pow(d4, 2)));
 
         inv_kine_sol(4*i, 2) = inv_kine_sol(4*i + 1, 2) = acos(K)-beta;
         inv_kine_sol(4*i + 2, 2) = inv_kine_sol(4*i + 3, 2) = -acos(K) - beta;
 
-        A1 = a2 + a3*cos(inv_kine_sol(4*i, 2)) - d4*sin(inv_kine_sol(4*i, 2));
-        A2 = a2 + a3*cos(inv_kine_sol(4*i + 2, 2)) - d4*sin(inv_kine_sol(4*i + 2, 2));
+        B1 = a2 + a3*cos(inv_kine_sol(4*i, 2)) - d4*sin(inv_kine_sol(4*i, 2));
+        B2 = a2 + a3*cos(inv_kine_sol(4*i + 2, 2)) - d4*sin(inv_kine_sol(4*i + 2, 2));
 
-        B1 = a3*sin(inv_kine_sol(4*i, 2)) + d4*cos(inv_kine_sol(4*i, 2));
-        B2 = a3*sin(inv_kine_sol(4*i + 2, 2)) + d4*cos(inv_kine_sol(4*i + 2, 2));
+        A1 = a3*sin(inv_kine_sol(4*i, 2)) + d4*cos(inv_kine_sol(4*i, 2));
+        A2 = a3*sin(inv_kine_sol(4*i + 2, 2)) + d4*cos(inv_kine_sol(4*i + 2, 2));
 
         //Solve for theta2
-        inv_kine_sol(4*i, 1) = inv_kine_sol(4*i + 1, 1) = atan2(pose16(0, 3), pose16(1, 3)) - atan2(B1, A1);
-        inv_kine_sol(4*i + 2, 1) = inv_kine_sol(4*i + 3, 1) = atan2(pose16(0, 3), pose16(1, 3)) - atan2(B2, A2);
+        if (sin(inv_kine_sol(4*i, 0)) == 0)
+        {
+            inv_kine_sol(4*i, 1) = inv_kine_sol(4*i + 1, 1) = atan2(pose(2, 3) - d1 - d6*pose(2, 2), (pose(0, 3) - d6*pose(0, 2))/(cos(inv_kine_sol(4*i, 0)))) - atan2(B1, A1);
+            inv_kine_sol(4*i + 2, 1) = inv_kine_sol(4*i + 3, 1) = atan2(pose(2, 3) - d1 - d6*pose(2, 2), (pose(0, 3) - d6*pose(0, 2))/(cos(inv_kine_sol(4*i, 0)))) - atan2(B2, A2);
+        }
+        else
+        {
+            inv_kine_sol(4*i, 1) = inv_kine_sol(4*i + 1, 1) = atan2(pose(2, 3) - d1 - d6*pose(2, 2), (pose(1, 3) - d6*pose(1, 2))/(sin(inv_kine_sol(4*i, 0)))) - atan2(B1, A1);
+            inv_kine_sol(4*i + 2, 1) = inv_kine_sol(4*i + 3, 1) = atan2(pose(2, 3) - d1 - d6*pose(2, 2), (pose(1, 3) - d6*pose(1, 2))/(sin(inv_kine_sol(4*i, 0)))) - atan2(B2, A2);
+
+        }
+
     }
 
     for (int i = 0; i < 7; i++)
     {
         double joint13[3] = {inv_kine_sol(i, 0), inv_kine_sol(i, 1), inv_kine_sol(i, 2)};
-        Matrix4d pose46 = forward_kine(joint13, 3).inverse()*pose;
+        Matrix4d pose36 = forward_kine(joint13, 3).inverse()*pose;
 
         //Solve for theta5
         if (i%2 == 0)
-            inv_kine_sol(i, 4) = acos(-pose46(2, 2));
+            inv_kine_sol(i, 4) = acos(-pose36(2, 2));
         else
-            inv_kine_sol(i, 4) = -acos(-pose46(2, 2));
+            inv_kine_sol(i, 4) = -acos(-pose36(2, 2));
 
         //Solve for theta4
-        inv_kine_sol(i, 3) = atan2(pose46(1, 2)/(-sin(inv_kine_sol(i, 4))), pose46(0, 2)/(-sin(inv_kine_sol(i, 4))));
+        inv_kine_sol(i, 3) = atan2(pose36(1, 2)/(-sin(inv_kine_sol(i, 4))), pose36(0, 2)/(-sin(inv_kine_sol(i, 4))));
         //Solve for theta6
-        inv_kine_sol(i, 5) = atan2(pose46(2, 1)/sin(inv_kine_sol(i, 4)), pose46(2, 0)/(-sin(inv_kine_sol(i, 4))));
+        inv_kine_sol(i, 5) = atan2(pose36(2, 1)/sin(inv_kine_sol(i, 4)), pose36(2, 0)/(-sin(inv_kine_sol(i, 4))));
     }
 
     //Check if the inverse kinematic solutions are in the robot workspace

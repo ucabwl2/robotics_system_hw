@@ -10,14 +10,12 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 class hArm_kinematic(object):
 
     def __init__(self):
-        self.dh_params = [[0.0, -pi/2, 0.126, 0.0],
-                          [0.26569, 0.0, 0.0, -pi/2],
-                          [0.03, -pi/2, 0.0, 0.0],
+        self.dh_params = [[0.0, -pi/2, 0.159, 0.0],
+                          [0.26569, 0.0, 0.0, -pi/2+np.arctan(0.03/0.264)],
+                          [0.03, -pi/2, 0.0, -np.arctan(0.03/0.264)],
                           [0.0, -pi/2, 0.258, 0.0],
                           [0.0, -pi/2, 0.0, 0.0],
-                          [0.0, 0.0, 0.0, 0.0]]
-
-        self.joint_offset = [170*pi/180, 65*pi/180, -146*pi/180, 102.5*pi/180, 167.5*pi/180]
+                          [0.0, 0.0, -0.123, 0.0]]
 
         self.current_joint_position = [0.0, 0.0, 0.0, 0.0, 0.0]
 
@@ -60,9 +58,11 @@ class hArm_kinematic(object):
     def forward_kine(self, joint, frame):
         T = np.identity(4)
 
-        for i in range(0, 6):
-            A = self.dh_matrix_standard(self.dh_params[i][0], self.dh_params[i][1], self.dh_params[i][2], joint[i] + self.dh_params[i][3])
-
+        for i in range(0, frame):
+            if (i == 4) or (i == 5):
+                A = self.dh_matrix_standard(self.dh_params[i][0], self.dh_params[i][1], self.dh_params[i][2], self.dh_params[i][3] - joint[i])
+            else:
+                A = self.dh_matrix_standard(self.dh_params[i][0], self.dh_params[i][1], self.dh_params[i][2], self.dh_params[i][3] + joint[i])
 
             T = T.dot(A)
 
@@ -90,7 +90,9 @@ class hArm_kinematic(object):
 
         a2 = self.dh_params[1, 0]
         a3 = self.dh_params[2, 0]
+        d1 = self.dh_params[0, 2]
         d4 = self.dh_params[3, 2]
+        d6 = self.dh_params[5, 2]
         beta = np.arctan2(d4, a3)
 
         ##Solve for theta1
@@ -103,25 +105,37 @@ class hArm_kinematic(object):
             inv_kine_sol[4, 0] = inv_kine_sol[5, 0] = inv_kine_sol[6, 0] = inv_kine_sol[7, 0] = np.arctan2(pose[1, 3], pose[0, 3]) - pi
 
 
+        K = 0
+
         ##Solve for theta3
         for i in range(0, 2):
-            pose16 = np.linalg.inv(self.dh_matrix_standard(self.dh_params[0, 0], self.dh_params[0, 1], self.dh_params[0, 2],
-                                                           self.dh_params[0, 3] + inv_kine_sol[4*i, 0])).dot(pose)
 
-            K = (pose16[0, 3]**2 + pose16[1, 3]**2 - a3**2 - a2**2 - d4**2)/(2*a2*np.sqrt(a3**2 + d4**2))
+            if (np.sin(inv_kine_sol[4*i, 0]) == 0):
+                K = (((pose[0, 3] - d6*pose[0, 2])/(np.cos(inv_kine_sol[4*i, 0])))**2 +
+                     (pose[2, 3] - d1 - d6*pose[2, 2])**2 - a3**2 - a2**2 - d4**2)
+            else:
+                K = (((pose[1, 3] - d6*pose[1, 2])/(np.sin(inv_kine_sol[4*i, 0])))**2 +
+                     (pose[2, 3] - d1 - d6*pose[2, 2])**2 - a3**2 - a2**2 - d4**2)
+
+            K = K/(2*a2*np.sqrt(a3**2 + d4**2))
+
             inv_kine_sol[4*i, 2] = inv_kine_sol[4*i + 1, 2] = np.arccos(K) - beta
             inv_kine_sol[4*i + 2, 2] = inv_kine_sol[4*i + 3, 2] = -np.arccos(K) - beta
 
-            A1 = a2 + a3*np.cos(inv_kine_sol[4*i, 2]) - d4*np.sin(inv_kine_sol[4*i, 2])
-            A2 = a2 + a3*np.cos(inv_kine_sol[4*i + 2, 2]) - d4*np.sin(inv_kine_sol[4*i + 2, 2])
+            B1 = a2 + a3*np.cos(inv_kine_sol[4*i, 2]) - d4*np.sin(inv_kine_sol[4*i, 2])
+            B2 = a2 + a3*np.cos(inv_kine_sol[4*i + 2, 2]) - d4*np.sin(inv_kine_sol[4*i + 2, 2])
 
-            B1 = a3*np.sin(inv_kine_sol[4*i, 2]) + d4*np.cos(inv_kine_sol[4*i, 2])
-            B2 = a3*np.sin(inv_kine_sol[4*i + 2, 2]) + d4*np.cos(inv_kine_sol[4*i + 2, 2])
+            A1 = a3*np.sin(inv_kine_sol[4*i, 2]) + d4*np.cos(inv_kine_sol[4*i, 2])
+            A2 = a3*np.sin(inv_kine_sol[4*i + 2, 2]) + d4*np.cos(inv_kine_sol[4*i + 2, 2])
 
 
             ##Solve for theta2
-            inv_kine_sol[4*i, 1] = inv_kine_sol[4*i + 1, 1] = np.arctan2(pose16[0, 3], pose16[1, 3]) - np.arctan2(B1, A1)
-            inv_kine_sol[4*i + 2, 1] = inv_kine_sol[4*i + 3, 1] = np.arctan2(pose16[0, 3], pose16[1, 3]) - np.arctan2(B2, A2)
+            if (np.sin(inv_kine_sol[4 * i, 0]) == 0):
+                inv_kine_sol[4*i, 1] = inv_kine_sol[4*i + 1, 1] = np.arctan2(pose[2, 3] - d1 - d6*pose[2, 2], (pose[0, 3] - d6*pose[0, 2])/(np.cos(inv_kine_sol[4*i, 0]))) - np.arctan2(B1, A1)
+                inv_kine_sol[4*i + 2, 1] = inv_kine_sol[4*i + 3, 1] = np.arctan2(pose[2, 3] - d1 - d6*pose[2, 2], (pose[0, 3] - d6*pose[0, 2])/(np.cos(inv_kine_sol[4*i, 0]))) - np.arctan2(B2, A2)
+            else:
+                inv_kine_sol[4*i, 1] = inv_kine_sol[4*i + 1, 1] = np.arctan2(pose[2, 3] - d1 - d6*pose[2, 2], (pose[1, 3] - d6*pose[1, 2])/(np.sin(inv_kine_sol[4*i, 0]))) - np.arctan2(B1, A1)
+                inv_kine_sol[4*i + 2, 1] = inv_kine_sol[4*i + 3, 1] = np.arctan2(pose[2, 3] - d1 - d6*pose[2, 2], (pose[1, 3] - d6*pose[1, 2])/(np.sin(inv_kine_sol[4*i, 0]))) - np.arctan2(B2, A2)
 
 
         for i in range(0, 7):
