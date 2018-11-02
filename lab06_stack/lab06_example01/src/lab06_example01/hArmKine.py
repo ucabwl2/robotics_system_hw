@@ -141,9 +141,9 @@ class hArm_kinematic(object):
 
         for i in range(0, 7):
 
-            pose46 = np.linalg.inv(self.dh_matrix_standard(self.dh_params[0, 0], self.dh_params[0, 1], self.dh_params[0, 2], inv_kine_sol[i, 0])*
-                                   self.dh_matrix_standard(self.dh_params[1, 0], self.dh_params[1, 1], self.dh_params[1, 2], inv_kine_sol[i, 1])*
-                                   self.dh_matrix_standard(self.dh_params[2, 0], self.dh_params[2, 1], self.dh_params[2, 2], inv_kine_sol[i, 2])).dot(pose)
+            pose46 = np.linalg.inv(self.dh_matrix_standard(self.dh_params[0, 0], self.dh_params[0, 1], self.dh_params[0, 2], self.dh_params[0, 2] + inv_kine_sol[i, 0])*
+                                   self.dh_matrix_standard(self.dh_params[1, 0], self.dh_params[1, 1], self.dh_params[1, 2], self.dh_params[1, 2] + inv_kine_sol[i, 1])*
+                                   self.dh_matrix_standard(self.dh_params[2, 0], self.dh_params[2, 1], self.dh_params[2, 2], self.dh_params[2, 2] + inv_kine_sol[i, 2])).dot(pose)
 
             ##Solve for theta5
             if (i%2 == 0):
@@ -162,10 +162,17 @@ class hArm_kinematic(object):
         ##Check if the inverse kinematic solutions are in the robot workspace
         for i in range(0, 8):
             for j in range(0, 6):
-                if (inv_kine_sol[i, j] + self.dh_params[j, 3] <= self.joint_limit_min[j]) or (inv_kine_sol[i, j] + self.dh_params[j, 3] >= self.joint_limit_max[j]):
-                    ##Put some value there to let you know that this solution is not valid.
-                    inv_kine_sol[i, 6] = -j
-                    break
+                if (inv_kine_sol[i, j] <= self.joint_limit_min[j]) or (inv_kine_sol[i, j] >= self.joint_limit_max[j]):
+
+                    ##If the solution is very close to the limit, it could be because of numerical error.
+                    if (abs(inv_kine_sol[i, j] - self.joint_limit_min[j]) < 1.5*pi/180):
+                        inv_kine_sol[i, j] = self.joint_limin_min[j]
+                    elif (abs(inv_kine_sol[i, j] - self.joint_limit_max[j]) < 1.5*pi/180):
+                        inv_kine_sol[i, j] = self.joint_limin_max[j]
+                    else:
+                        ##Put some value there to let you know that this solution is not valid.
+                        inv_kine_sol[i, 6] = -j
+                        break
                 else:
                     ##Put some value there to let you know that this solution is valid.
                     inv_kine_sol[i, 6] = 1

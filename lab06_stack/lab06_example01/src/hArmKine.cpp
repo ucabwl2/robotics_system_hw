@@ -190,9 +190,9 @@ MatrixXd hArm_kinematic::inverse_kine_closed_form(Matrix4d pose)
 
     for (int i = 0; i < 7; i++)
     {
-        Matrix4d pose36 = (dh_matrix_standard(DH_params[0][0], DH_params[0][1], DH_params[0][2], inv_kine_sol(i, 0))*
-                           dh_matrix_standard(DH_params[1][0], DH_params[1][1], DH_params[1][2], inv_kine_sol(i, 1))*
-                           dh_matrix_standard(DH_params[2][0], DH_params[2][1], DH_params[2][2], inv_kine_sol(i, 2))).inverse()*pose;
+        Matrix4d pose36 = (dh_matrix_standard(DH_params[0][0], DH_params[0][1], DH_params[0][2], DH_params[0][3] + inv_kine_sol(i, 0))*
+                           dh_matrix_standard(DH_params[1][0], DH_params[1][1], DH_params[1][2], DH_params[1][3] + inv_kine_sol(i, 1))*
+                           dh_matrix_standard(DH_params[2][0], DH_params[2][1], DH_params[2][2], DH_params[2][3] + inv_kine_sol(i, 2))).inverse()*pose;
 
         //Solve for theta5
         if (i%2 == 0)
@@ -211,16 +211,28 @@ MatrixXd hArm_kinematic::inverse_kine_closed_form(Matrix4d pose)
     {
         for (int j = 0; j < 6; j++)
         {
-            if ((inv_kine_sol(i, j) + DH_params[j][3] <= joint_limit_min[j]) || (inv_kine_sol(i, j) + DH_params[j][3] >= joint_limit_max[j]))
+            if ((inv_kine_sol(i, j) <= joint_limit_min[j]) || (inv_kine_sol(i, j) >= joint_limit_max[j]))
             {
-                //Put some value there to let you know that this solution is not valid.
-                inv_kine_sol(i, 6) = -j;
-                break;
+                //If the solution is very close to the limit, it could be because of numerical error.
+                if (std::abs(inv_kine_sol(i, j) - joint_limit_min[j]) < 1.5*M_PI/180)
+                {
+                    inv_kine_sol(i, j) = joint_limit_min[j];
+                }
+                else if (std::abs(inv_kine_sol(i, j) - joint_limit_max[j]) < 1.5*M_PI/180)
+                {
+                    inv_kine_sol(i, j) = joint_limit_max[j];
+                }
+                else
+                {
+                    //Put some value there to let you know that this solution is not valid.
+                    inv_kine_sol(i, 6) = -j - 1;
+                    break;
+                }
             }
             else
             {
                 //Put some value there to let you know that this solution is valid.
-                inv_kine_sol(i, 6) = 1;
+                inv_kine_sol(i, 6) = 0.0;
             }
         }
     }
