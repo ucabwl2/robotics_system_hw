@@ -26,12 +26,6 @@ void youbot_kinematic::init()
     joint_limit_max[4] = 167.5*M_PI/180;
 
     joint_state_sub = nh.subscribe<sensor_msgs::JointState>("/joint_states", 5, &youbot_kinematic::joint_state_callback, this);
-    traj_publisher = nh.advertise<trajectory_msgs::JointTrajectory>("/EffortJointInterface_trajectory_controller/command", 5);
-}
-
-void youbot_kinematic::publish_joint_trajectory(trajectory_msgs::JointTrajectoryPoint joint_trajectory, int tfs)
-{
-    //TODO: Fill in this function to publish the joint trajectory (as part of question 4)
 }
 
 void youbot_kinematic::joint_state_callback(const sensor_msgs::JointState::ConstPtr &q)
@@ -40,6 +34,7 @@ void youbot_kinematic::joint_state_callback(const sensor_msgs::JointState::Const
         current_joint_position[i] = q->position.at(i);
 
     current_pose = forward_kine(current_joint_position, 5);
+    broadcast_pose(current_pose);
 }
 
 Matrix4d youbot_kinematic::dh_matrix_standard(double a, double alpha, double d, double theta)

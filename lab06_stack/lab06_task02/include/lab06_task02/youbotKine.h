@@ -15,7 +15,6 @@ class youbot_kinematic
 {
 protected:
     ros::NodeHandle nh;
-    ros::Publisher traj_publisher;
     ros::Subscriber joint_state_sub;
     tf2_ros::TransformBroadcaster pose_br;
     double DH_params[5][4];
@@ -27,7 +26,6 @@ protected:
 
 public:
     void init();
-    void publish_joint_trajectory(trajectory_msgs::JointTrajectoryPoint joint_trajectory, int tfs);
     void joint_state_callback(const sensor_msgs::JointState::ConstPtr &q);
     Matrix4d forward_kine(double joint_val[], int frame);
     void broadcast_pose(Matrix4d pose);

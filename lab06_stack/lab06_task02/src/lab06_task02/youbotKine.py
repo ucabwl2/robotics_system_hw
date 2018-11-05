@@ -6,8 +6,6 @@ import numpy as np
 import tf2_ros
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TransformStamped, Quaternion
-from trajectory_msgs.msg import JointTrajectory
-
 
 class youbot_kinematic(object):
 
@@ -21,15 +19,12 @@ class youbot_kinematic(object):
 
         self.joint_offset = [170*pi/180, 65*pi/180, -146*pi/180, 102.5*pi/180, 167.5*pi/180]
 
-        self.current_joint_position = [0.0, 0.0, 0.0, 0.0, 0.0]
 
         self.joint_limit_min = [-169*pi/180, -65*pi/180, -150*pi/180, -102.5*pi/180, -167.5*pi/180]
         self.joint_limit_max = [169*pi/180, 90*pi/180, 146*pi/180, 102.5*pi/180, 167.5*pi/180]
 
         self.joint_state_sub = rospy.Subscriber('/joint_states', JointState, self.joint_state_callback,
                                                         queue_size=5)
-        self.traj_publisher = rospy.Publisher('/EffortJointInterface_trajectory_controller/command', JointTrajectory,
-                                              queue_size=5)
 
         self.pose_broadcaster = tf2_ros.TransformBroadcaster()
 
@@ -55,8 +50,26 @@ class youbot_kinematic(object):
         return A
 
     def joint_state_callback(self, msg):
+        current_joint_position = [0.0, 0.0, 0.0, 0.0]
         for i in range(0, 5):
-            self.current_joint_position[i] = msg.position[i]
+            current_joint_position[i] = msg.position[i]
+
+        current_pose = self.forward_kine(current_joint_position, 5)
+        self.pose_broadcaster.broadcast_pose(current_pose)
+
+    def broadcast_pose(self, T):
+        transform = TransformStamped()
+
+        transform.header.stamp = rospy.Time.now()
+        transform.header.frame_id = 'base_link'
+        transform.child_frame_id = self.joint_names[4]
+
+        transform.transform.translation.x = T[0, 3]
+        transform.transform.translation.y = T[1, 3]
+        transform.transform.translation.z = T[2, 3]
+        transform.transform.rotation = self.rotmat2q(T)
+
+        self.pose_broadcaster.sendTransform(transform)
 
     def forward_kine(self, joint, frame):
         T = np.identity(4)
@@ -82,14 +95,23 @@ class youbot_kinematic(object):
         yr = T[0, 2] - T[2, 0]
         zr = T[1, 0] - T[0, 1]
 
-        x = xr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
-        y = yr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
-        z = zr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
+        if ((xr == 0) and (yr == 0) and (zr == 0)):
 
-        q.w = np.cos(angle / 2)
-        q.x = x * np.sin(angle / 2)
-        q.y = y * np.sin(angle / 2)
-        q.z = z * np.sin(angle / 2)
+            q.w = 1.0
+            q.x = 0.0
+            q.y = 0.0
+            q.z = 0.0
+
+        else:
+
+            x = xr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
+            y = yr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
+            z = zr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
+
+            q.w = np.cos(angle / 2)
+            q.x = x * np.sin(angle / 2)
+            q.y = y * np.sin(angle / 2)
+            q.z = z * np.sin(angle / 2)
 
         return q
 

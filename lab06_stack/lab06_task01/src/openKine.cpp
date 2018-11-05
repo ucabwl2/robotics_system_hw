@@ -23,25 +23,6 @@ void open_kinematic::init()
     joint_limit_max[3] = M_PI*0.5;
 
     joint_state_sub = nh.subscribe<sensor_msgs::JointState>("/joint_states", 5, &open_kinematic::joint_state_callback, this);
-    traj_publisher = nh.advertise<trajectory_msgs::JointTrajectory>("/EffortJointInterface_trajectory_controller/command", 5);
-}
-
-
-void open_kinematic::publish_joint_trajectory(trajectory_msgs::JointTrajectoryPoint joint_trajectory, int tfs)
-{
-    trajectory_msgs::JointTrajectory msg;
-
-    msg.header.stamp = ros::Time::now();
-    msg.joint_names.push_back("joint1");
-    msg.joint_names.push_back("joint2");
-    msg.joint_names.push_back("joint3");
-    msg.joint_names.push_back("joint4");
-
-    joint_trajectory.time_from_start.nsec = tfs;
-
-    msg.points.push_back(joint_trajectory);
-
-    this->traj_publisher.publish(msg);
 }
 
 
@@ -51,6 +32,7 @@ void open_kinematic::joint_state_callback(const sensor_msgs::JointState::ConstPt
         current_joint_position[i] = q->position.at(i);
 
     current_pose = forward_kine(current_joint_position, 4);
+    broadcast_pose(current_pose);
 }
 
 Matrix4d open_kinematic::dh_matrix_standard(double a, double alpha, double d, double theta)

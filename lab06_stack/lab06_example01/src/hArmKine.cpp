@@ -22,7 +22,6 @@ void hArm_kinematic::init()
     joint_limit_max[5] = M_PI;
 
     joint_state_sub = nh.subscribe<sensor_msgs::JointState>("/joint_states", 5, &hArm_kinematic::joint_state_callback, this);
-    traj_publisher = nh.advertise<trajectory_msgs::JointTrajectory>("/EffortJointInterface_trajectory_controller/command", 5);
 }
 
 void hArm_kinematic::joint_state_callback(const sensor_msgs::JointState::ConstPtr &q)
@@ -31,6 +30,7 @@ void hArm_kinematic::joint_state_callback(const sensor_msgs::JointState::ConstPt
         current_joint_position[i] = q->position.at(i);
 
     current_pose = forward_kine(current_joint_position, 6);
+    broadcast_pose(current_pose);
 }
 
 Matrix4d hArm_kinematic::dh_matrix_standard(double a, double alpha, double d, double theta)
@@ -87,33 +87,11 @@ void hArm_kinematic::broadcast_pose(Matrix4d pose)
     geometry_msgs::TransformStamped T = tf2::eigenToTransform(pose_affine);
 
     T.header.stamp = ros::Time::now();
-    T.header.frame_id = "base_link";
+    T.header.frame_id = "world";
     T.child_frame_id = "arm_end_effector";
 
     pose_br.sendTransform(T);
 }
-
-void hArm_kinematic::publish_joint_trajectory(trajectory_msgs::JointTrajectoryPoint joint_trajectory, int tfs)
-{
-
-    //This function can be used to publish joint trajectory. Or you can implement it yourself.
-    trajectory_msgs::JointTrajectory msg;
-
-    msg.header.stamp = ros::Time::now();
-    msg.joint_names.push_back("joint1");
-    msg.joint_names.push_back("joint2");
-    msg.joint_names.push_back("joint3");
-    msg.joint_names.push_back("joint4");
-    msg.joint_names.push_back("joint5");
-    msg.joint_names.push_back("joint6");
-
-    joint_trajectory.time_from_start.nsec = tfs;
-
-    msg.points.push_back(joint_trajectory);
-
-    this->traj_publisher.publish(msg);
-}
-
 
 MatrixXd hArm_kinematic::get_jacobian(double joint_val[])
 {
@@ -213,7 +191,7 @@ MatrixXd hArm_kinematic::inverse_kine_closed_form(Matrix4d pose)
         {
             if ((inv_kine_sol(i, j) <= joint_limit_min[j]) || (inv_kine_sol(i, j) >= joint_limit_max[j]))
             {
-                //If the solution is very close to the limit, it could be because of numerical error.
+                //If the solution is very close to the limit, it could be because of the numerical error.
                 if (std::abs(inv_kine_sol(i, j) - joint_limit_min[j]) < 1.5*M_PI/180)
                 {
                     inv_kine_sol(i, j) = joint_limit_min[j];

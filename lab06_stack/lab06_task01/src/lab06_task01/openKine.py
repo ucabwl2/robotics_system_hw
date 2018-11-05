@@ -6,7 +6,6 @@ import numpy as np
 import tf2_ros
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import TransformStamped, Quaternion
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 
 class open_kinematic(object):
@@ -20,15 +19,11 @@ class open_kinematic(object):
 
         self.joint_offset = [0.0, np.arctan(0.024/0.128)-pi/2, np.arctan(0.128/0.024), 0.0]
 
-        self.current_joint_position = [0.0, 0.0, 0.0, 0.0, 0.0]
-
         self.joint_limit_min = [-pi*0.9, -pi*0.5, -pi*0.3, -pi*0.4]
         self.joint_limit_max = [pi*0.9, pi*0.5, pi*0.44, pi*0.5]
 
         self.joint_state_sub = rospy.Subscriber('/joint_states', JointState, self.joint_state_callback,
                                                         queue_size=5)
-        self.traj_publisher = rospy.Publisher('/EffortJointInterface_trajectory_controller/command', JointTrajectory,
-                                              queue_size=5)
 
         self.pose_broadcaster = tf2_ros.TransformBroadcaster()
 
@@ -56,13 +51,17 @@ class open_kinematic(object):
         return A
 
     def joint_state_callback(self, msg):
+        current_joint_position = [0.0, 0.0, 0.0, 0.0]
         for i in range(0, 4):
-            self.current_joint_position[i] = msg.position[i]
+            current_joint_position[i] = msg.position[i]
+
+        current_pose = self.forward_kine(current_joint_position, 4)
+        self.pose_broadcaster.broadcast_pose(current_pose)
 
     def forward_kine(self, joint, frame):
         T = np.identity(4)
 
-        for i in range(0, 4):
+        for i in range(0, frame):
 
             A = self.dh_matrix_standard(self.dh_params[i][0], self.dh_params[i][1], self.dh_params[i][2], joint[i] + self.dh_params[i][3])
 
@@ -70,20 +69,21 @@ class open_kinematic(object):
 
         return T
 
-    def publish_joint_trajectory(self, joint_trajectory, tfs):
-        msg = JointTrajectory()
-        msg.header.stamp = rospy.Time.now()
 
-        msg.joint_names = self.joint_names
+    def broadcast_pose(self, T):
+        transform = TransformStamped()
 
-        point = JointTrajectoryPoint()
-        point.positions = joint_trajectory
-        point.time_from_start.nsecs = tfs
+        transform.header.stamp = rospy.Time.now()
+        transform.header.frame_id = 'world'
+        transform.child_frame_id = self.joint_names[4]
 
-        msg.points.append(point)
+        transform.transform.translation.x = T[0, 3]
+        transform.transform.translation.y = T[1, 3]
+        transform.transform.translation.z = T[2, 3]
+        transform.transform.rotation = self.rotmat2q(T)
 
-        self.traj_publisher.publish(msg)
-    
+        self.pose_broadcaster.sendTransform(transform)
+
 
     def rotmat2q(self, T):
         q = Quaternion()
@@ -94,16 +94,26 @@ class open_kinematic(object):
         yr = T[0, 2] - T[2, 0]
         zr = T[1, 0] - T[0, 1]
 
-        x = xr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
-        y = yr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
-        z = zr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
+        if ((xr == 0) and (yr == 0) and (zr == 0)):
 
-        q.w = np.cos(angle / 2)
-        q.x = x * np.sin(angle / 2)
-        q.y = y * np.sin(angle / 2)
-        q.z = z * np.sin(angle / 2)
+            q.w = 1.0
+            q.x = 0.0
+            q.y = 0.0
+            q.z = 0.0
+
+        else:
+
+            x = xr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
+            y = yr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
+            z = zr / np.sqrt(np.power(xr, 2) + np.power(yr, 2) + np.power(zr, 2))
+
+            q.w = np.cos(angle / 2)
+            q.x = x * np.sin(angle / 2)
+            q.y = y * np.sin(angle / 2)
+            q.z = z * np.sin(angle / 2)
 
         return q
+
 
     def get_jacobian(self, joint):
         ##TODO: Fill in this function
