@@ -13,11 +13,9 @@ class open_kinematic(object):
     def __init__(self):
 
         self.dh_params = [[0.0, -pi/2, 0.075, 0.0],
-                          [0.130, 0.0, 0.0, 0.0],
-                          [0.124, 0.0, 0.0, 0.0],
+                          [0.130, 0.0, 0.0, np.arctan(0.024/0.128)-pi/2],
+                          [0.124, 0.0, 0.0, np.arctan(0.128/0.024)],
                           [0.07,  0.0, 0.0, 0.0]]
-
-        self.joint_offset = [0.0, np.arctan(0.024/0.128)-pi/2, np.arctan(0.128/0.024), 0.0]
 
         self.joint_limit_min = [-pi*0.9, -pi*0.5, -pi*0.3, -pi*0.4]
         self.joint_limit_max = [pi*0.9, pi*0.5, pi*0.44, pi*0.5]
