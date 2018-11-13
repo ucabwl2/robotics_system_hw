@@ -33,7 +33,7 @@ void youbot_kinematic::joint_state_callback(const sensor_msgs::JointState::Const
     for(int i = 0; i < 5; i++)
         current_joint_position[i] = q->position.at(i);
 
-    current_pose = forward_kine(current_joint_position, 5);
+    current_pose = forward_kine_offset(current_joint_position, 5);
     broadcast_pose(current_pose);
 }
 
@@ -63,9 +63,29 @@ Matrix4d youbot_kinematic::dh_matrix_standard(double a, double alpha, double d, 
     return A;
 }
 
+
 Matrix4d youbot_kinematic::forward_kine(double joint_val[], int frame)
 {
+    //This function expects an offset-free joint value.
+    Matrix4d A;
+    Matrix4d T = Matrix4d::Identity(4, 4);
 
+    for(int i = 0;i < frame; i++)
+    {
+        A = dh_matrix_standard(DH_params[i][0], DH_params[i][1], DH_params[i][2], joint_val[i] + DH_params[i][3]);
+
+        T = T * A;
+    }
+
+    return T;
+}
+
+
+
+Matrix4d youbot_kinematic::forward_kine_offset(double joint_val[], int frame)
+{
+
+    //This function expects a joint value with offset.
     Matrix4d A;
     Matrix4d T = Matrix4d::Identity(4, 4);
 

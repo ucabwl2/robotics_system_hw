@@ -29,7 +29,7 @@ void hArm_kinematic::joint_state_callback(const sensor_msgs::JointState::ConstPt
     for(int i = 0; i < 6; i++)
         current_joint_position[i] = q->position.at(i);
 
-    current_pose = forward_kine(current_joint_position, 6);
+    current_pose = forward_kine_offset(current_joint_position, 6);
     broadcast_pose(current_pose);
 }
 
@@ -59,9 +59,27 @@ Matrix4d hArm_kinematic::dh_matrix_standard(double a, double alpha, double d, do
     return A;
 }
 
+
 Matrix4d hArm_kinematic::forward_kine(double joint_val[], int frame)
 {
+    //This function expects an offset-free joint value. Use this for computing iterative inverse kinematic.
 
+    Matrix4d A;
+    Matrix4d T = Matrix4d::Identity(4, 4);
+
+    for(int i = 0;i < frame; i++)
+    {
+        A = dh_matrix_standard(DH_params[i][0], DH_params[i][1], DH_params[i][2], joint_val[i] + DH_params[i][3]);
+        T = T * A;
+    }
+
+    return T;
+}
+
+
+Matrix4d hArm_kinematic::forward_kine_offset(double joint_val[], int frame)
+{
+    //This function expects a joint value with a joint offset. (data comes from sensor_msgs::JointState).
     Matrix4d A;
     Matrix4d T = Matrix4d::Identity(4, 4);
 

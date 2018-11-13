@@ -26,6 +26,7 @@ protected:
 public:
     void init();
     void joint_state_callback(const sensor_msgs::JointState::ConstPtr &q);
+    Matrix4d forward_kine_offset(double joint_val[], int frame);
     Matrix4d forward_kine(double joint_val[], int frame);
     void broadcast_pose(Matrix4d pose);
     MatrixXd get_jacobian(double joint_val[]);

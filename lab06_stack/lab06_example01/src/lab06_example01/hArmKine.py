@@ -69,7 +69,7 @@ class hArm_kinematic(object):
         for i in range(0, 6):
             current_joint_position[i] = msg.position[i]
 
-        current_pose = self.forward_kine(current_joint_position, 6)
+        current_pose = self.forward_kine_offset(current_joint_position, 6)
         self.pose_broadcaster.broadcast_pose(current_pose)
 
 
@@ -104,6 +104,19 @@ class hArm_kinematic(object):
 
 
     def forward_kine(self, joint, frame):
+        #This function expects an offset-free joint value.
+        T = np.identity(4)
+
+        for i in range(0, frame):
+            A = self.dh_matrix_standard(self.dh_params[i][0], self.dh_params[i][1], self.dh_params[i][2], self.dh_params[i][3] + joint[i])
+
+            T = T.dot(A)
+
+        return T
+
+
+    def forward_kine_offset(self, joint, frame):
+        #This function expects a joint value with offset.
         T = np.identity(4)
 
         for i in range(0, frame):
