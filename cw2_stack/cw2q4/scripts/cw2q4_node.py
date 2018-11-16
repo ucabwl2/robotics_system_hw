@@ -21,8 +21,7 @@ def main_traj(cw2data):
 
     bag = rosbag.Bag(path + '/bags/data' + str(cw2data) + '.bag')
 
-    if (cw2data == 3):
-        bag = rosbag.Bag(path + '/bags/data/data3-3.bag')
+
 
     dt = 0.01
     joint_traj = JointTrajectory()

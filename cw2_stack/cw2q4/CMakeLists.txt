@@ -20,7 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_definitions(-DMY_BAG_A="${PROJECT_SOURCE_DIR}/bags/data1.bag")
 add_definitions(-DMY_BAG_B="${PROJECT_SOURCE_DIR}/bags/data2.bag")
-add_definitions(-DMY_BAG_C="${PROJECT_SOURCE_DIR}/bags/data3-3.bag")
+add_definitions(-DMY_BAG_C="${PROJECT_SOURCE_DIR}/bags/data3.bag")
 
 catkin_package()
 
