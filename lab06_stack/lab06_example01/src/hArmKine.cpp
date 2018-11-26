@@ -139,48 +139,59 @@ MatrixXd hArm_kinematic::inverse_kine_closed_form(Matrix4d pose)
     double d4 = DH_params[3][2];
     double beta = atan2(d4, a3);
 
+    //Rename the variables so that the code is more readable.
+    double x = pose(0, 3);
+    double y = pose(1, 3);
+    double z = pose(2, 3);
+    double r13 = pose(0, 2);
+    double r23 = pose(1, 2);
+    double r33 = pose(2, 2);
+
     //Solve for theta1
-    inv_kine_sol(0, 0) = inv_kine_sol(1, 0) = inv_kine_sol(2, 0) = inv_kine_sol(3, 0) = atan2(pose(1, 3), pose(0, 3));
+    inv_kine_sol(0, 0) = inv_kine_sol(1, 0) = inv_kine_sol(2, 0) = inv_kine_sol(3, 0) = atan2(y - d6*r23, x - d6*r13);
 
     //Check with the joint limit for the other solution.
     if (inv_kine_sol(0, 0) <= 0.0)
-        inv_kine_sol(4, 0) = inv_kine_sol(5, 0) = inv_kine_sol(6, 0) = inv_kine_sol(7, 0) = atan2(pose(1, 3), pose(0, 3)) + M_PI;
+        inv_kine_sol(4, 0) = inv_kine_sol(5, 0) = inv_kine_sol(6, 0) = inv_kine_sol(7, 0) = atan2(y - d6*r23, x - d6*r13) + M_PI;
     else
-        inv_kine_sol(4, 0) = inv_kine_sol(5, 0) = inv_kine_sol(6, 0) = inv_kine_sol(7, 0) = atan2(pose(1, 3), pose(0, 3)) - M_PI;
+        inv_kine_sol(4, 0) = inv_kine_sol(5, 0) = inv_kine_sol(6, 0) = inv_kine_sol(7, 0) = atan2(y - d6*r23, x - d6*r13) - M_PI;
 
-    double K, A1, A2, B1, B2;
+    double A1, A2, B1, B2, k, K;
 
     //Solve for theta3
     for (int i = 0; i < 2; i++)
     {
-        if (sin(inv_kine_sol(4*i, 0)) == 0)
-            K = pow((pose(0, 3) - d6*pose(0, 2))/(cos(inv_kine_sol(4*i, 0))), 2) + pow(pose(2, 3) - d1 - d6*pose(2, 2), 2) - pow(a3, 2) - pow(a2, 2) - pow(d4, 2);
-        else
-            K = pow((pose(1, 3) - d6*pose(1, 2))/(sin(inv_kine_sol(4*i, 0))), 2) + pow(pose(2, 3) - d1 - d6*pose(2, 2), 2) - pow(a3, 2) - pow(a2, 2) - pow(d4, 2);
+        //Rename the variables so that the code is more readable.
+        double th1 = inv_kine_sol(4*i, 0);
 
+        if (sin(th1) == 0)
+            k = (x - d6*r13)/cos(th1);
+        else
+            k = (y - d6*r23)/sin(th1);
+
+        K = pow(k, 2) + pow(z - d1 - d6*r33, 2) - pow(a3, 2) - pow(a2, 2) - pow(d4, 2);
         K = K/(2*a2*sqrt(pow(a3, 2) + pow(d4, 2)));
 
-        inv_kine_sol(4*i, 2) = inv_kine_sol(4*i + 1, 2) = acos(K)-beta;
-        inv_kine_sol(4*i + 2, 2) = inv_kine_sol(4*i + 3, 2) = -acos(K) - beta;
+        inv_kine_sol(4*i, 2) = inv_kine_sol(4*i + 1, 2) = acos(K)- beta + atan(0.03/0.264);
+        inv_kine_sol(4*i + 2, 2) = inv_kine_sol(4*i + 3, 2) = -acos(K) - beta + atan(0.03/0.264);
 
-        B1 = a2 + a3*cos(inv_kine_sol(4*i, 2)) - d4*sin(inv_kine_sol(4*i, 2));
-        B2 = a2 + a3*cos(inv_kine_sol(4*i + 2, 2)) - d4*sin(inv_kine_sol(4*i + 2, 2));
+        //Rename the variables so that the code is more readable.
+        double th3_1_with_offset = inv_kine_sol(4*i, 2) - atan(0.03/0.264);
+        double th3_2_with_offset = inv_kine_sol(4*i + 2, 2) - atan(0.03/0.264);
 
-        A1 = a3*sin(inv_kine_sol(4*i, 2)) + d4*cos(inv_kine_sol(4*i, 2));
-        A2 = a3*sin(inv_kine_sol(4*i + 2, 2)) + d4*cos(inv_kine_sol(4*i + 2, 2));
+        B1 = a2 + a3*cos(th3_1_with_offset) - d4*sin(th3_1_with_offset);
+        B2 = a2 + a3*cos(th3_2_with_offset) - d4*sin(th3_2_with_offset);
+
+        A1 = a3*sin(th3_1_with_offset) + d4*cos(th3_1_with_offset);
+        A2 = a3*sin(th3_2_with_offset) + d4*cos(th3_2_with_offset);
+
+        //Rename the variables so that the code is more readable.
+        double gamma_1 = atan2(A1, B1);
+        double gamma_2 = atan2(A2, B2);
 
         //Solve for theta2
-        if (sin(inv_kine_sol(4*i, 0)) == 0)
-        {
-            inv_kine_sol(4*i, 1) = inv_kine_sol(4*i + 1, 1) = atan2(pose(2, 3) - d1 - d6*pose(2, 2), (pose(0, 3) - d6*pose(0, 2))/(cos(inv_kine_sol(4*i, 0)))) - atan2(B1, A1);
-            inv_kine_sol(4*i + 2, 1) = inv_kine_sol(4*i + 3, 1) = atan2(pose(2, 3) - d1 - d6*pose(2, 2), (pose(0, 3) - d6*pose(0, 2))/(cos(inv_kine_sol(4*i, 0)))) - atan2(B2, A2);
-        }
-        else
-        {
-            inv_kine_sol(4*i, 1) = inv_kine_sol(4*i + 1, 1) = atan2(pose(2, 3) - d1 - d6*pose(2, 2), (pose(1, 3) - d6*pose(1, 2))/(sin(inv_kine_sol(4*i, 0)))) - atan2(B1, A1);
-            inv_kine_sol(4*i + 2, 1) = inv_kine_sol(4*i + 3, 1) = atan2(pose(2, 3) - d1 - d6*pose(2, 2), (pose(1, 3) - d6*pose(1, 2))/(sin(inv_kine_sol(4*i, 0)))) - atan2(B2, A2);
-
-        }
+        inv_kine_sol(4*i, 1) = inv_kine_sol(4*i + 1, 1) = atan2(k, z - d1 - d6*r33) - gamma_1 - atan(0.03/0.264);
+        inv_kine_sol(4*i + 2, 1) = inv_kine_sol(4*i + 3, 1) = atan2(k, z - d1 - d6*r33) - gamma_2 - atan(0.03/0.264);
 
     }
 
@@ -190,16 +201,30 @@ MatrixXd hArm_kinematic::inverse_kine_closed_form(Matrix4d pose)
                            dh_matrix_standard(DH_params[1][0], DH_params[1][1], DH_params[1][2], DH_params[1][3] + inv_kine_sol(i, 1))*
                            dh_matrix_standard(DH_params[2][0], DH_params[2][1], DH_params[2][2], DH_params[2][3] + inv_kine_sol(i, 2))).inverse()*pose;
 
+
+        //Rename the variables so that the code is more readable.
+        double n13 = pose36(0, 2);
+        double n23 = pose36(1, 2);
+        double n31 = pose36(2, 0);
+        double n32 = pose36(2, 1);
+        double n33 = pose36(2, 2);
+
         //Solve for theta5
         if (i%2 == 0)
-            inv_kine_sol(i, 4) = acos(-pose36(2, 2));
+            inv_kine_sol(i, 4) = acos(-n33);
         else
-            inv_kine_sol(i, 4) = -acos(-pose36(2, 2));
+            inv_kine_sol(i, 4) = -acos(-n33);
+
+        //Rename the variables so that the code is more readable.
+        double th5 = inv_kine_sol(i, 4);
 
         //Solve for theta4
-        inv_kine_sol(i, 3) = atan2(pose36(1, 2)/(-sin(inv_kine_sol(i, 4))), pose36(0, 2)/(-sin(inv_kine_sol(i, 4))));
+        inv_kine_sol(i, 3) = atan2(-n23/sin(th5), -n13/sin(th5));
         //Solve for theta6
-        inv_kine_sol(i, 5) = atan2(pose36(2, 1)/sin(inv_kine_sol(i, 4)), pose36(2, 0)/(-sin(inv_kine_sol(i, 4))));
+        inv_kine_sol(i, 5) = atan2(n32/sin(th5), -n31/sin(th5));
+        inv_kine_sol(i, 5) = -inv_kine_sol(i, 5);
+        inv_kine_sol(i, 4) = -inv_kine_sol(i, 4);
+
     }
 
     //Check if the inverse kinematic solutions are in the robot workspace

@@ -70,7 +70,7 @@ class hArm_kinematic(object):
             current_joint_position[i] = msg.position[i]
 
         current_pose = self.forward_kine_offset(current_joint_position, 6)
-        self.pose_broadcaster.broadcast_pose(current_pose)
+        self.broadcast_pose(current_pose)
 
 
     def rotmat2q(self, T):
@@ -134,75 +134,98 @@ class hArm_kinematic(object):
         ##There are 8 possible inverse kinematic solutions. The last column indicates whether or not the solution lies within the robot workspace (does not exceed joint limit)
         inv_kine_sol = np.zeros((8, 7))
 
-        a2 = self.dh_params[1, 0]
-        a3 = self.dh_params[2, 0]
-        d1 = self.dh_params[0, 2]
-        d4 = self.dh_params[3, 2]
-        d6 = self.dh_params[5, 2]
+        a2 = self.dh_params[1][0]
+        a3 = self.dh_params[2][0]
+        d1 = self.dh_params[0][2]
+        d4 = self.dh_params[3][2]
+        d6 = self.dh_params[5][2]
         beta = np.arctan2(d4, a3)
 
+        ##Rename the variables so that the code is more readable.
+        x = pose[0, 3];
+        y = pose[1, 3];
+        z = pose[2, 3];
+        r13 = pose[0, 2];
+        r23 = pose[1, 2];
+        r33 = pose[2, 2];
+
         ##Solve for theta1
-        inv_kine_sol[0, 0] = inv_kine_sol[1, 0] = inv_kine_sol[2, 0] = inv_kine_sol[3, 0] = np.arctan2(pose[1, 3], pose[0, 3])
+        inv_kine_sol[0, 0] = inv_kine_sol[1, 0] = inv_kine_sol[2, 0] = inv_kine_sol[3, 0] = np.arctan2(y - d6*r23, x - d6*r13)
 
         ##Check with the joint limit for the other solution
         if (inv_kine_sol[0, 0] <= 0):
-            inv_kine_sol[4, 0] = inv_kine_sol[5, 0] = inv_kine_sol[6, 0] = inv_kine_sol[7, 0] = np.arctan2(pose[1, 3], pose[0, 3]) + pi
+            inv_kine_sol[4, 0] = inv_kine_sol[5, 0] = inv_kine_sol[6, 0] = inv_kine_sol[7, 0] = np.arctan2(y - d6*r23, x - d6*r13) + pi
         else:
-            inv_kine_sol[4, 0] = inv_kine_sol[5, 0] = inv_kine_sol[6, 0] = inv_kine_sol[7, 0] = np.arctan2(pose[1, 3], pose[0, 3]) - pi
+            inv_kine_sol[4, 0] = inv_kine_sol[5, 0] = inv_kine_sol[6, 0] = inv_kine_sol[7, 0] = np.arctan2(y - d6*r23, x - d6*r13) - pi
 
 
-        K = 0
+        k = K = 0
 
         ##Solve for theta3
         for i in range(0, 2):
 
-            if (np.sin(inv_kine_sol[4*i, 0]) == 0):
-                K = (((pose[0, 3] - d6*pose[0, 2])/(np.cos(inv_kine_sol[4*i, 0])))**2 +
-                     (pose[2, 3] - d1 - d6*pose[2, 2])**2 - a3**2 - a2**2 - d4**2)
-            else:
-                K = (((pose[1, 3] - d6*pose[1, 2])/(np.sin(inv_kine_sol[4*i, 0])))**2 +
-                     (pose[2, 3] - d1 - d6*pose[2, 2])**2 - a3**2 - a2**2 - d4**2)
+            ##Rename the variables so that the code is more readable.
+            th1 = inv_kine_sol[4*i, 0]
 
+            if (np.sin(th1) == 0):
+                k = (x - d6*r13)/np.cos(th1)
+            else:
+                k = (y - d6*r23)/np.sin(th1)
+
+            K = k**2 + (z - d1 - d6*r33)**2 - a3**2 - a2**2 - d4**2
             K = K/(2*a2*np.sqrt(a3**2 + d4**2))
 
-            inv_kine_sol[4*i, 2] = inv_kine_sol[4*i + 1, 2] = np.arccos(K) - beta
-            inv_kine_sol[4*i + 2, 2] = inv_kine_sol[4*i + 3, 2] = -np.arccos(K) - beta
+            inv_kine_sol[4*i, 2] = inv_kine_sol[4*i + 1, 2] = np.arccos(K) - beta + np.arctan(0.03/0.264)
+            inv_kine_sol[4*i + 2, 2] = inv_kine_sol[4*i + 3, 2] = -np.arccos(K) - beta + np.arctan(0.03/0.264)
 
-            B1 = a2 + a3*np.cos(inv_kine_sol[4*i, 2]) - d4*np.sin(inv_kine_sol[4*i, 2])
-            B2 = a2 + a3*np.cos(inv_kine_sol[4*i + 2, 2]) - d4*np.sin(inv_kine_sol[4*i + 2, 2])
+            ##Rename the variables so that the code is more readable.
+            th3_1_with_offset = inv_kine_sol[4*i, 2] - np.arctan(0.03/0.264)
+            th3_2_with_offset = inv_kine_sol[4*i + 2, 2] - np.arctan(0.03/0.264)
 
-            A1 = a3*np.sin(inv_kine_sol[4*i, 2]) + d4*np.cos(inv_kine_sol[4*i, 2])
-            A2 = a3*np.sin(inv_kine_sol[4*i + 2, 2]) + d4*np.cos(inv_kine_sol[4*i + 2, 2])
+            B1 = a2 + a3*np.cos(th3_1_with_offset) - d4*np.sin(th3_1_with_offset)
+            B2 = a2 + a3*np.cos(th3_2_with_offset) - d4*np.sin(th3_2_with_offset)
 
+            A1 = a3*np.sin(th3_1_with_offset) + d4*np.cos(th3_1_with_offset)
+            A2 = a3*np.sin(th3_2_with_offset) + d4*np.cos(th3_2_with_offset)
+
+            ##Rename the variables so that the code is more readable.
+            gamma_1 = np.arctan2(A1, B1)
+            gamma_2 = np.arctan2(A2, B2)
 
             ##Solve for theta2
-            if (np.sin(inv_kine_sol[4 * i, 0]) == 0):
-                inv_kine_sol[4*i, 1] = inv_kine_sol[4*i + 1, 1] = np.arctan2(pose[2, 3] - d1 - d6*pose[2, 2], (pose[0, 3] - d6*pose[0, 2])/(np.cos(inv_kine_sol[4*i, 0]))) - np.arctan2(B1, A1)
-                inv_kine_sol[4*i + 2, 1] = inv_kine_sol[4*i + 3, 1] = np.arctan2(pose[2, 3] - d1 - d6*pose[2, 2], (pose[0, 3] - d6*pose[0, 2])/(np.cos(inv_kine_sol[4*i, 0]))) - np.arctan2(B2, A2)
-            else:
-                inv_kine_sol[4*i, 1] = inv_kine_sol[4*i + 1, 1] = np.arctan2(pose[2, 3] - d1 - d6*pose[2, 2], (pose[1, 3] - d6*pose[1, 2])/(np.sin(inv_kine_sol[4*i, 0]))) - np.arctan2(B1, A1)
-                inv_kine_sol[4*i + 2, 1] = inv_kine_sol[4*i + 3, 1] = np.arctan2(pose[2, 3] - d1 - d6*pose[2, 2], (pose[1, 3] - d6*pose[1, 2])/(np.sin(inv_kine_sol[4*i, 0]))) - np.arctan2(B2, A2)
+            inv_kine_sol[4*i, 1] = inv_kine_sol[4*i + 1, 1] = np.arctan2(k, z - d1 - d6*r33) - gamma_1 - np.arctan(0.03/0.264)
+            inv_kine_sol[4*i + 2, 1] = inv_kine_sol[4*i + 3, 1] = np.arctan2(k, z - d1 - d6*r33) - gamma_2 - np.arctan(0.03/0.264)
 
 
         for i in range(0, 7):
 
-            pose46 = np.linalg.inv(self.dh_matrix_standard(self.dh_params[0, 0], self.dh_params[0, 1], self.dh_params[0, 2], self.dh_params[0, 2] + inv_kine_sol[i, 0])*
-                                   self.dh_matrix_standard(self.dh_params[1, 0], self.dh_params[1, 1], self.dh_params[1, 2], self.dh_params[1, 2] + inv_kine_sol[i, 1])*
-                                   self.dh_matrix_standard(self.dh_params[2, 0], self.dh_params[2, 1], self.dh_params[2, 2], self.dh_params[2, 2] + inv_kine_sol[i, 2])).dot(pose)
+            pose36 = np.linalg.inv(self.forward_kine(inv_kine_sol[i, :], 3)).dot(pose)
+
+
+            ##Rename the variables so that the code is more readable.
+            n13 = pose36[0, 2]
+            n23 = pose36[1, 2]
+            n31 = pose36[2, 0]
+            n32 = pose36[2, 1]
+            n33 = pose36[2, 2]
 
             ##Solve for theta5
             if (i%2 == 0):
-                inv_kine_sol[i, 4] = np.arccos(-pose46[2, 2])
+                inv_kine_sol[i, 4] = np.arccos(-n33)
             else:
-                inv_kine_sol[i, 4] = -np.arccos(-pose46[2, 2])
+                inv_kine_sol[i, 4] = -np.arccos(-n33)
+
+            ##Rename the variables so the code is more readable.
+            th5 = inv_kine_sol[i, 4]
 
             ##Solve for theta4
-            inv_kine_sol[i, 3] = np.arctan2(pose46[1, 2]/(-np.sin(inv_kine_sol[i, 4])),
-                                            pose46[0, 2]/(-np.sin(inv_kine_sol[i, 4])))
+            inv_kine_sol[i, 3] = np.arctan2(-n23/np.sin(th5), -n13/np.sin(th5))
 
             ##Solve for theta6
-            inv_kine_sol[i, 5] = np.arctan2(pose46[2, 1]/np.sin(inv_kine_sol[i, 4]),
-                                            pose46[2, 0]/(-np.sin(inv_kine_sol[i, 4])))
+            inv_kine_sol[i, 5] = np.arctan2(n32/np.sin(th5), -n31/np.sin(th5))
+
+            inv_kine_sol[i, 5] = -inv_kine_sol[i, 5]
+            inv_kine_sol[i, 4] = -inv_kine_sol[i, 4]
 
         ##Check if the inverse kinematic solutions are in the robot workspace
         for i in range(0, 8):
@@ -211,9 +234,9 @@ class hArm_kinematic(object):
 
                     ##If the solution is very close to the limit, it could be because of numerical error.
                     if (abs(inv_kine_sol[i, j] - self.joint_limit_min[j]) < 1.5*pi/180):
-                        inv_kine_sol[i, j] = self.joint_limin_min[j]
+                        inv_kine_sol[i, j] = self.joint_limit_min[j]
                     elif (abs(inv_kine_sol[i, j] - self.joint_limit_max[j]) < 1.5*pi/180):
-                        inv_kine_sol[i, j] = self.joint_limin_max[j]
+                        inv_kine_sol[i, j] = self.joint_limit_max[j]
                     else:
                         ##Put some value there to let you know that this solution is not valid.
                         inv_kine_sol[i, 6] = -j
