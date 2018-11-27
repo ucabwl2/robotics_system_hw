@@ -26,6 +26,8 @@ class youbot_kinematic(object):
         self.joint_state_sub = rospy.Subscriber('/joint_states', JointState, self.joint_state_callback,
                                                         queue_size=5)
 
+        self.joint_names = ['joint1', 'joint2', 'joint3', 'joint4', 'joint5']
+
         self.pose_broadcaster = tf2_ros.TransformBroadcaster()
 
     def dh_matrix_standard(self, a, alpha, d, theta):
@@ -50,12 +52,12 @@ class youbot_kinematic(object):
         return A
 
     def joint_state_callback(self, msg):
-        current_joint_position = [0.0, 0.0, 0.0, 0.0]
+        current_joint_position = [0.0, 0.0, 0.0, 0.0, 0.0]
         for i in range(0, 5):
             current_joint_position[i] = msg.position[i]
 
         current_pose = self.forward_kine_offset(current_joint_position, 5)
-        self.pose_broadcaster.broadcast_pose(current_pose)
+        self.broadcast_pose(current_pose)
 
     def broadcast_pose(self, T):
         transform = TransformStamped()

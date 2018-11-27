@@ -54,7 +54,7 @@ class open_kinematic(object):
             current_joint_position[i] = msg.position[i]
 
         current_pose = self.forward_kine(current_joint_position, 4)
-        self.pose_broadcaster.broadcast_pose(current_pose)
+        self.broadcast_pose(current_pose)
 
     def forward_kine(self, joint, frame):
         T = np.identity(4)
@@ -73,7 +73,7 @@ class open_kinematic(object):
 
         transform.header.stamp = rospy.Time.now()
         transform.header.frame_id = 'world'
-        transform.child_frame_id = self.joint_names[4]
+        transform.child_frame_id = self.joint_names[3]
 
         transform.transform.translation.x = T[0, 3]
         transform.transform.translation.y = T[1, 3]
