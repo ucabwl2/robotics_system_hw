@@ -12,49 +12,51 @@ class iiwa14_kinematic(object):
 
     def __init__(self):
 
-        self.X_alpha = [pi/2, pi/2, pi/2, pi/2, pi/2, pi/2, 0.0]
+        self.X_alpha = [pi / 2, pi / 2, pi / 2, pi / 2, pi / 2, pi / 2, 0.0]
         self.Y_alpha = [pi, pi, 0, pi, 0, pi, 0]
         self.current_joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
-        self.joint_limit_min = [-170*pi/180, -120*pi/180, -170*pi/180, -120*pi/180,-170*pi/180, -120*pi/180, -175*pi/180]
-        self.joint_limit_max = [ 170*pi/180,  120*pi/180,  170*pi/180,  120*pi/180, 170*pi/180,  120*pi/180,  175*pi/180]
+        self.joint_limit_min = [-170 * pi / 180, -120 * pi / 180, -170 * pi / 180, -120 * pi / 180, -170 * pi / 180,
+                                -120 * pi / 180, -175 * pi / 180]
+        self.joint_limit_max = [170 * pi / 180, 120 * pi / 180, 170 * pi / 180, 120 * pi / 180, 170 * pi / 180,
+                                120 * pi / 180, 175 * pi / 180]
 
         ##The translation between each joint for manual forward kinematic (not using the DH convention).
-        self.translation_vec = [[0, 0, 0.2025],
-                                [0, 0.2045, 0],
-                                [0, 0, 0.2155],
-                                [0, 0.1845, 0],
-                                [0, 0, 0.2155],
-                                [0, 0.081, 0],
-                                [0, 0, 0.045]]
+        self.translation_vec = np.array([[0, 0, 0.2025],
+                                         [0, 0.2045, 0],
+                                         [0, 0, 0.2155],
+                                         [0, 0.1845, 0],
+                                         [0, 0, 0.2155],
+                                         [0, 0.081, 0],
+                                         [0, 0, 0.045]])
 
         ##The centre of mass of each link with respect to the preceding joint.
-        self.link_cm = [[0, -0.03, 0.12],
-                        [0.0003, 0.059, 0.042],
-                        [0, 0.03, 0.13],
-                        [0, 0.067, 0.034],
-                        [0.0001, 0.021, 0.076],
-                        [0, 0.0006, 0.0004],
-                        [0, 0, 0.02]]
+        self.link_cm = np.array([[0, -0.03, 0.12],
+                                 [0.0003, 0.059, 0.042],
+                                 [0, 0.03, 0.13],
+                                 [0, 0.067, 0.034],
+                                 [0.0001, 0.021, 0.076],
+                                 [0, 0.0006, 0.0004],
+                                 [0, 0, 0.02]])
 
         ##The mass of each link.
         self.mass = [4, 4, 3, 2.7, 1.7, 1.8, 0.3]
 
         ##Moment on inertia of each link, defined at the centre of mass.
         ##Each row is (Ixx, Iyy, Izz) and Ixy = Ixz = Iyz = 0.
-        self.Ixyz = [[0.1, 0.09, 0.02],
-                    [0.05, 0.018, 0.044],
-                    [0.08, 0.075, 0.01],
-                    [0.03, 0.01, 0.029],
-                    [0.02, 0.018, 0.005],
-                    [0.005, 0.0036, 0.0047],
-                    [0.001, 0.001, 0.001]]
+        self.Ixyz = np.array([[0.1, 0.09, 0.02],
+                              [0.05, 0.018, 0.044],
+                              [0.08, 0.075, 0.01],
+                              [0.03, 0.01, 0.029],
+                              [0.02, 0.018, 0.005],
+                              [0.005, 0.0036, 0.0047],
+                              [0.001, 0.001, 0.001]])
 
         ##gravity
         self.g = 9.8
 
         self.joint_state_sub = rospy.Subscriber('/joint_states', JointState, self.joint_state_callback,
-                                                        queue_size=5)
+                                                queue_size=5)
 
         self.pose_broadcaster = tf2_ros.TransformBroadcaster()
 
@@ -149,6 +151,7 @@ class iiwa14_kinematic(object):
         T[1, 2] = -np.sin(theta)
         T[2, 1] = np.sin(theta)
         T[2, 2] = np.cos(theta)
+        return T
 
 
     ##Transformation functions for forward kinematic.
@@ -158,7 +161,7 @@ class iiwa14_kinematic(object):
         T[0, 2] = np.sin(theta)
         T[2, 0] = -np.sin(theta)
         T[2, 2] = np.cos(theta)
-
+        return T
 
 
     def forward_kine(self, joint, frame):
@@ -169,7 +172,7 @@ class iiwa14_kinematic(object):
 
         ##Manual forward kine for dynamics purpose. This chain of transformation works exactly the same as forward kinematic.
         for i in range(0, frame):
-            T = T.dot(self.T_rotationZ(joint(i)))
+            T = T.dot(self.T_rotationZ(joint[i]))
             T = T.dot(self.T_translation(self.translation_vec[i, :]))
             T = T.dot(self.T_rotationX(self.X_alpha[i]))
             T = T.dot(self.T_rotationY(self.Y_alpha[i]))
