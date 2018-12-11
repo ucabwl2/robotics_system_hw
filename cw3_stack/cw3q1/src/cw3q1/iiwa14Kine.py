@@ -12,14 +12,8 @@ class iiwa14_kinematic(object):
 
     def __init__(self):
 
-        self.dh_params = [[0.0, -pi/2, 0.360, 0.0],
-                          [0.0,  pi/2,   0.0, 0.0],
-                          [0.0,  pi/2, 0.420, 0.0],
-                          [0.0, -pi/2,   0.0, 0.0],
-                          [0.0, -pi/2, 0.400, 0.0],
-                          [0.0,  pi/2,   0.0, 0.0],
-                          [0.0,   0.0, 0.126, 0.0]]
-
+        self.X_alpha = [pi/2, pi/2, pi/2, pi/2, pi/2, pi/2, 0.0]
+        self.Y_alpha = [pi, pi, 0, pi, 0, pi, 0]
         self.current_joint_position = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
         self.joint_limit_min = [-170*pi/180, -120*pi/180, -170*pi/180, -120*pi/180,-170*pi/180, -120*pi/180, -175*pi/180]
@@ -27,20 +21,20 @@ class iiwa14_kinematic(object):
 
         ##The translation between each joint for manual forward kinematic (not using the DH convention).
         self.translation_vec = [[0, 0, 0.2025],
-                                [0, -0.2045, 0],
+                                [0, 0.2045, 0],
                                 [0, 0, 0.2155],
                                 [0, 0.1845, 0],
-                                [0, -0.06, 0.2155],
-                                [0, -0.081, 0.06],
+                                [0, 0, 0.2155],
+                                [0, 0.081, 0],
                                 [0, 0, 0.045]]
 
         ##The centre of mass of each link with respect to the preceding joint.
         self.link_cm = [[0, -0.03, 0.12],
-                        [0.0003, -0.059, 0.042],
+                        [0.0003, 0.059, 0.042],
                         [0, 0.03, 0.13],
                         [0, 0.067, 0.034],
-                        [0.0001, -0.021, 0.076],
-                        [0, 0.0006, 0.0596],
+                        [0.0001, 0.021, 0.076],
+                        [0, 0.0006, 0.0004],
                         [0, 0, 0.02]]
 
         ##The mass of each link.
@@ -122,7 +116,7 @@ class iiwa14_kinematic(object):
         transform = TransformStamped()
 
         transform.header.stamp = rospy.Time.now()
-        transform.header.frame_id = 'iiwa_link_1'
+        transform.header.frame_id = 'iiwa_link_0'
         transform.child_frame_id = 'iiwa_ee'
 
         transform.transform.translation.x = pose[0, 3]
@@ -157,14 +151,28 @@ class iiwa14_kinematic(object):
         T[2, 2] = np.cos(theta)
 
 
+    ##Transformation functions for forward kinematic.
+    def T_rotationY(self, theta):
+        T = np.identity(4)
+        T[0, 0] = np.cos(theta)
+        T[0, 2] = np.sin(theta)
+        T[2, 0] = -np.sin(theta)
+        T[2, 2] = np.cos(theta)
+
+
+
     def forward_kine(self, joint, frame):
         T = np.identity(4)
+
+        ##Add offset from the iiwa platform.
+        T[2, 3] = 0.1575
 
         ##Manual forward kine for dynamics purpose. This chain of transformation works exactly the same as forward kinematic.
         for i in range(0, frame):
             T = T.dot(self.T_rotationZ(joint(i)))
             T = T.dot(self.T_translation(self.translation_vec[i, :]))
-            T = T.dot(self.T_rotationX(self.dh_params[i][1]))
+            T = T.dot(self.T_rotationX(self.X_alpha[i]))
+            T = T.dot(self.T_rotationY(self.Y_alpha[i]))
 
         return T
 

@@ -18,7 +18,6 @@ protected:
     ros::Publisher traj_publisher;
     ros::Subscriber joint_state_sub;
     tf2_ros::TransformBroadcaster pose_br;
-    double DH_params[7][4];
     double joint_limit_min[7];
     double joint_limit_max[7];
     Matrix4d current_pose;
@@ -26,6 +25,8 @@ protected:
     MatrixXd link_cm, translation_vec, Ixyz;
     VectorXd mass;
     double g;
+    double X_alpha[7];
+    double Y_alpha[7];
 
 public:
     void init();

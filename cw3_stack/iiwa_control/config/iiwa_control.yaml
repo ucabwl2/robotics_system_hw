@@ -122,10 +122,10 @@
       iiwa_joint_1: {p: 120,  d: 10, i: 4, i_clamp: 1000}
       iiwa_joint_2: {p: 164,  d: 75, i: 35, i_clamp: 1000}
       iiwa_joint_3: {p: 75,  d: 0.6, i: 3.15, i_clamp: 1000}
-      iiwa_joint_4: {p: 138,  d: 60, i: 25, i_clamp: 1000}
-      iiwa_joint_5: {p: 70,  d: 0.15, i: 1, i_clamp: 1000}
-      iiwa_joint_6: {p: 85,  d: 7, i: 2.5, i_clamp: 1000}
-      iiwa_joint_7: {p: 10,  d: 0.005, i: 0.1, i_clamp: 1000}
+      iiwa_joint_4: {p: 120,  d: 60, i: 25, i_clamp: 1000}
+      iiwa_joint_5: {p: 50,  d: 0.15, i: 1, i_clamp: 1000}
+      iiwa_joint_6: {p: 35,  d: 7, i: 2.5, i_clamp: 1000}
+      iiwa_joint_7: {p: 5,  d: 0.005, i: 0.1, i_clamp: 1000}
 
 
     constraints:
