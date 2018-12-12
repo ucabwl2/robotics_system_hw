@@ -184,7 +184,7 @@ class iiwa14_kinematic(object):
         ##TODO: Modify this function to complete the question 1.
         ## "joint" is a numpy array of double consisting of the joint value.
         ## "frame" is an integer indicating the frame you wish to calculate.
-        ## The output is a numpy 4*4 matrix describing the transformation from the 'iiwa_link_1' frame to the centre of mass of a link.
+        ## The output is a numpy 4*4 matrix describing the transformation from the 'iiwa_link_0' frame to the centre of mass of a link.
         raise NotImplementedError()  # Remove this line, once implemented everything
 
     def get_jacobian(self, joint):
