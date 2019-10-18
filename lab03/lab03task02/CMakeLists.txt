@@ -8,7 +8,7 @@ project(lab03task02)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  lab03_task03_srv
+  lab03task02srv
   roscpp
   rospy
 )
