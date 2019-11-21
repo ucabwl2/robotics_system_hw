@@ -50,19 +50,19 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>geometry_msgs</build_depend>
-  <build_depend>lab06_task02</build_depend>
+  <build_depend>lab06task02</build_depend>
   <build_depend>rosbag</build_depend>
   <build_depend>roscpp</build_depend>
   <build_depend>rospy</build_depend>
   <build_depend>trajectory_msgs</build_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
-  <build_export_depend>lab06_task02</build_export_depend>
+  <build_export_depend>lab06task02</build_export_depend>
   <build_export_depend>rosbag</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <build_export_depend>rospy</build_export_depend>
   <build_export_depend>trajectory_msgs</build_export_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>lab06_task02</exec_depend>
+  <exec_depend>lab06task02</exec_depend>
   <exec_depend>rosbag</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
