@@ -7,7 +7,7 @@ import rospy
 import tf2_kdl
 import tf2_ros
 
-from youbotKDL_tester.YoubotKDL import YoubotKDL
+from youbotkdl_tester.YoubotKDL import YoubotKDL
 
 if __name__ == '__main__':
     rospy.init_node('youbot_bag_follower')
@@ -17,7 +17,7 @@ if __name__ == '__main__':
     rospack = rospkg.RosPack()
 
     # get the file path for inverse_kinematics
-    path = rospack.get_path('youbotKDL_tester')
+    path = rospack.get_path('youbotkdl_tester')
     bag = rosbag.Bag(path + '/bags/data.bag')
     trans_list = []
 
