@@ -17,7 +17,7 @@ def main_traj(cw2data):
     my_youbot = youbot_kinematic()
 
     rospack = rospkg.RosPack()
-    path = rospack.get_path('cw2q4')
+    path = rospack.get_path('cw2q5')
 
     bag = rosbag.Bag(path + '/bags/data' + str(cw2data) + '.bag')
 

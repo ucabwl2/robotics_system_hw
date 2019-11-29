@@ -7,7 +7,7 @@
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="paused" value="false"/>
 
-    <arg name="world_name" value="$(find cw2q4)/worlds/world_c.world" if="$(eval question == 3)"/>
+    <arg name="world_name" value="$(find cw2q5)/worlds/world_c.world" if="$(eval question == 3)"/>
 
     <arg name="use_sim_time" value="true"/>
     <arg name="gui" value="$(arg gui)"/>
