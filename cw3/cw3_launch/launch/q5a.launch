@@ -28,9 +28,9 @@
     </include>
       
     <node name="static_tf_pub_world_to_gazebo_world" pkg="tf2_ros" type="static_transform_publisher" args="0 0 0  0 0 0 1 map world" />
-
+    
     <group if="$(arg rviz)">
-    <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find cw3launch)/config/iiwa14.rviz" output="screen"/>
+    <node name="$(anon rviz)" pkg="rviz" type="rviz" respawn="false" args="-d $(find cw3_launch)/config/iiwa14.rviz" output="screen"/>
     </group>
 
 </launch>
