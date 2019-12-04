@@ -2,9 +2,10 @@
 
 void iiwa14_kinematic::init()
 {
-    X_alpha[0] = X_alpha[1] = X_alpha[2] = X_alpha[3] = X_alpha[4] = X_alpha[5] = M_PI_2; X_alpha[6] = 0.0;
-    Y_alpha[0] = Y_alpha[1] = Y_alpha[3] = Y_alpha[5] = M_PI;
-    Y_alpha[2] = Y_alpha[4] = Y_alpha[6] = 0.0;
+    //Delete this and fill DH parameters based on the xacro file (cw3/iiwa_description/urdf/iiwa14.xacro).
+    for (int i = 0; i < 7;i++)
+        for (int j = 0; j < 4;j++)
+            DH_params[i][j] = 0.0;
 
     joint_limit_min[0] = -170*M_PI/180;
     joint_limit_min[1] = -120*M_PI/180;
@@ -22,32 +23,11 @@ void iiwa14_kinematic::init()
     joint_limit_max[5] = 120*M_PI/180;
     joint_limit_max[6] = 175*M_PI/180;
 
-    //The translation between each joint for manual forward kinematic (not using the DH convention).
-    translation_vec.resize(7, 3);
-
-    translation_vec << 0, 0, 0.2025,
-            0, 0.2045, 0,
-            0, 0, 0.2155,
-            0, 0.1845, 0,
-            0, 0, 0.2155,
-            0, 0.081, 0,
-            0, 0, 0.045;
-
-    //The centre of mass of each link with respect to the preceding joint.
-    link_cm.resize(7, 3);
-    link_cm << 0, -0.03, 0.12,
-            0.0003, 0.059, 0.042,
-            0, 0.03, 0.13,
-            0, 0.067, 0.034,
-            0.0001, 0.021, 0.076,
-            0, 0.0006, 0.0004,
-            0, 0, 0.02;
-
     //The mass of each link.
     mass.resize(7);
     mass << 4, 4, 3, 2.7, 1.7, 1.8, 0.3;
 
-    //Moment on inertia of each link, defined at the centre of mass.
+    //Moment on inertia of each link.
     //Each row is (Ixx, Iyy, Izz) and Ixy = Ixz = Iyz = 0.
     Ixyz.resize(7, 3);
     Ixyz << 0.1, 0.09, 0.02,
@@ -117,7 +97,7 @@ void iiwa14_kinematic::broadcast_pose(Matrix4d pose)
     pose_br.sendTransform(T);
 }
 
-//Transformation functions for forward kinematic.
+//Useful Transformation function.
 Matrix4d T_translation(Vector3d t)
 {
     Matrix4d T = Matrix4d::Identity(4, 4);
@@ -126,7 +106,7 @@ Matrix4d T_translation(Vector3d t)
     return T;
 }
 
-//Transformation functions for forward kinematic.
+//Useful Transformation function.
 Matrix4d T_rotationZ(double theta)
 {
     Matrix4d T = Matrix4d::Identity(4, 4);
@@ -137,7 +117,7 @@ Matrix4d T_rotationZ(double theta)
     return T;
 }
 
-//Transformation functions for forward kinematic.
+//Useful Transformation function.
 Matrix4d T_rotationY(double theta)
 {
     Matrix4d T = Matrix4d::Identity(4, 4);
@@ -148,8 +128,7 @@ Matrix4d T_rotationY(double theta)
     return T;
 }
 
-
-//Transformation functions for forward kinematic.
+//Useful Transformation function.
 Matrix4d T_rotationX(double theta)
 {
     Matrix4d T = Matrix4d::Identity(4, 4);
@@ -165,49 +144,46 @@ Matrix4d iiwa14_kinematic::forward_kine(VectorXd joint_val, int frame)
     Matrix4d T = Matrix4d::Identity(4, 4);
     //Add offset from the iiwa platform.
     T(2, 3) = 0.1575;
-    //Manual forward kine for dynamics purpose. This chain of transformation works exactly the same as forward kinematic.
-    for (int i = 0; i < frame; i++)
-        T = T * T_rotationZ(joint_val(i)) * T_translation(translation_vec.block<1, 3>(i, 0)) * T_rotationX(X_alpha[i]) * T_rotationY(Y_alpha[i]);
-
+    //TODO: Fill in this function to complete Q2.
     return T;
 }
 
 MatrixXd iiwa14_kinematic::forward_kine_cm(VectorXd joint_val, int frame)
 {
-    //TODO: Fill in this function to complete the question 1
+    //TODO: Fill in this function to complete Q2.
 }
 
 MatrixXd iiwa14_kinematic::get_jacobian(VectorXd joint_val)
 {
-    //TODO: Fill in this function to complete the question 1
+    //TODO: Fill in this function to complete Q2.
 }
 
 MatrixXd iiwa14_kinematic::get_jacobian_cm(VectorXd joint_val, int frame)
 {
-    //TODO: Fill in this function to complete the question 1
+    //TODO: Fill in this function to complete Q2.
 }
 
 VectorXd iiwa14_kinematic::inverse_kine_ite(Matrix4d pose, VectorXd joint_val)
 {
-    //TODO: Fill in this function to complete the question 1
+    //TODO: Fill in this function to complete Q2.
 }
 
 MatrixXd iiwa14_kinematic::inverse_kine_closed_form(Matrix4d pose)
 {
-    //TODO: Fill in this function to complete the question 1. You may need to re-structure the input of this function.
+    //TODO: Fill in this function to complete Q2.
 }
 
 MatrixXd iiwa14_kinematic::getB(VectorXd joint_val)
 {
-    //TODO: Fill in this function to complete the question 1
+    //TODO: Fill in this function to complete Q2.
 }
 
 MatrixXd iiwa14_kinematic::getC(VectorXd joint_val, VectorXd joint_vel)
 {
-    //TODO: Fill in this function to complete the question 1
+    //TODO: Fill in this function to complete Q2.
 }
 
 VectorXd iiwa14_kinematic::getG(VectorXd joint_val)
 {
-    //TODO: Fill in this function to complete the question 1
+    //TODO: Fill in this function to complete Q2.
 }

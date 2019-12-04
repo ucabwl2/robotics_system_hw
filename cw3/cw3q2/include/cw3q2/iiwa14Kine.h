@@ -27,6 +27,8 @@ protected:
     double g;
     double X_alpha[7];
     double Y_alpha[7];
+    double DH_params[7][4];
+
 
 public:
     void init();
