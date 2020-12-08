@@ -1,5 +1,4 @@
 ////////////////cw2/////////////////////
-Zhijia Chen, 19034821
 
 Q4.a
 1.open one terminal and then run 'rocore'
