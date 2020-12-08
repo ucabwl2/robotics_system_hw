@@ -3,13 +3,20 @@
 
 Q2
 >> roscore
+
 open a new terminal and run
 >> cd ~/catkin_ws
+
 >> catkin_make
+
 >> source devel/setup.bash
+
 >> roslaunch cw3_launch q5a.launch
+
 open a new terminal and run 
+
 >> source devel/setup.bash
+
 >> rosrun cw3q2 iiwa_kine_checker_node
 
 Then we should be able to see 
