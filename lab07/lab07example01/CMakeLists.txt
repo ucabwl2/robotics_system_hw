@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 ADD_DEFINITIONS(-DMY_BAG_PATH="${PROJECT_SOURCE_DIR}/../lab7data.bag")
+add_definitions(-DMY_BAG_A="${PROJECT_SOURCE_DIR}/../data1.bag")
 
 ###################################
 ## catkin specific configuration ##

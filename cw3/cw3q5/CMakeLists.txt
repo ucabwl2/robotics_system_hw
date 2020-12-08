@@ -11,7 +11,13 @@ find_package(catkin REQUIRED COMPONENTS
   cw3q2
   rosbag
   trajectory_msgs
+  std_msgs
 )
+
+add_definitions(-DMY_BAG_1="${PROJECT_SOURCE_DIR}/../cw3_launch/bags/cw3bag1.bag")
+add_definitions(-DMY_BAG_2="${PROJECT_SOURCE_DIR}/../cw3_launch/bags/cw3bag2.bag")
+add_definitions(-DMY_BAG_3="${PROJECT_SOURCE_DIR}/../cw3_launch/bags/cw3bag3.bag")
+#add_definitions(-DMY_BAG_1="${PROJECT_SOURCE_DIR}/bags/cw3bag1.bag")
 
 catkin_package()
 

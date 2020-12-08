@@ -24,10 +24,30 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node src/cw1q4_node.cpp)
+add_executable(${PROJECT_NAME}_client src/cw1q4_client.cpp)
+add_executable(${PROJECT_NAME}_44client src/cw1q4_44client.cpp)
+
+add_executable(${PROJECT_NAME}_43client src/cw1q4_43client.cpp)
+
 
 add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_44client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+add_dependencies(${PROJECT_NAME}_43client ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
+target_link_libraries(${PROJECT_NAME}_client
+  ${catkin_LIBRARIES}
+)
+target_link_libraries(${PROJECT_NAME}_44client
+  ${catkin_LIBRARIES}
+)
+
+target_link_libraries(${PROJECT_NAME}_43client
+  ${catkin_LIBRARIES}
+)
+

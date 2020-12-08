@@ -8,7 +8,7 @@ void youbot_kinematics() {
 
     Eigen::Matrix4d A;
     double curr_joint[5], pose1_values[5], pose2_values[5], pose3_values[5], pose4_values[5], pose5_values[5];
-
+    double IK_iteration[5];
     Eigen::Matrix4d T = Eigen::Matrix4d::Identity(4, 4);
     MatrixXd jacobian(6, 5);
     MatrixXd IK_closed;
@@ -32,71 +32,114 @@ void youbot_kinematics() {
 	T = object.forward_kine(pose1_values, 5);
 	jacobian = object.get_jacobian(pose1_values);
 	IK_closed = object.inverse_kine_closed_form(T);
-	IK_ite = object.inverse_kine_ite(T, pose1_values);
+        curr_joint[0] = pose1_values[0]; curr_joint[1] = pose1_values[1]; curr_joint[2] = pose1_values[2]; curr_joint[3] = pose1_values[3]; curr_joint[4] = pose1_values[4];
+	IK_ite = object.inverse_kine_ite(T, curr_joint);
 	singularity = object.check_singularity(pose1_values);
 	std::cout << "///// JOINT 1 /////" << std::endl;
 	std::cout << "The input joint values are: \n" << "[" << pose1_values[0] << ", " << pose1_values[1] << ", " << pose1_values[2] << ", " << pose1_values[3] << ", " << pose1_values[4] << "]" << "\n" << std::endl;
 	std::cout << "Jacobian: \n"<< jacobian << "\n" << std::endl;
 	std::cout << "Closed form IK: \n"<< IK_closed << "\n" << std::endl;
-	std::cout << "Iterative form IK: \n"<< IK_ite << std::endl;
+        for(int k=0; k<5; k++)
+	{
+	    IK_iteration[k] = *IK_ite;
+            IK_ite++;
+	}
+	std::cout << "Iterative form IK: \n"<< "[" << IK_iteration[0] << ", " << IK_iteration[1] << ", " << IK_iteration[2] << ", " <<  IK_iteration[3] <<  ", " << IK_iteration[4] << "]" << "\n"<< std::endl;
 	std::cout << "Singularity cheker: \n"<< singularity << "\n" << std::endl;
+        std::cout << "0 means no Singularity \n" << "\n" << std::endl;
 	std::cout << "\n" << std::endl;
 
+       
 	//JOINT2
 	T = object.forward_kine(pose2_values, 5);
 	jacobian = object.get_jacobian(pose2_values);
 	IK_closed = object.inverse_kine_closed_form(T);
-	IK_ite = object.inverse_kine_ite(T, pose2_values);
-	singularity = object.check_singularity(pose2_values);
+        curr_joint[0] = pose2_values[0]; curr_joint[1] = pose2_values[1]; curr_joint[2] = pose2_values[2]; curr_joint[3] = pose2_values[3]; curr_joint[4] = pose2_values[4];
+	IK_ite = object.inverse_kine_ite(T, curr_joint);
+	//singularity = object.check_singularity(pose2_values);
+        //std::cout << "rotatioin matrix T: \n"<< T << "\n" << std::endl;
 	std::cout << "///// JOINT 2 /////" << std::endl;
 	std::cout << "The input joint values are: \n" << "[" << pose2_values[0] << ", " << pose2_values[1] << ", " << pose2_values[2] << ", " << pose2_values[3] << ", " << pose2_values[4] << "]" << "\n" << std::endl;
 	std::cout << "Jacobian: \n"<< jacobian << "\n" << std::endl;
 	std::cout << "Closed form IK: \n"<< IK_closed << "\n" << std::endl;
-	std::cout << "Iterative form IK: \n"<< IK_ite << std::endl;
+	//std::cout << "Iterative form IK: \n"<< IK_ite << std::endl;
+        for(int k=0; k<5; k++)
+	{
+	    IK_iteration[k] = *IK_ite;
+            IK_ite++;
+	}
+	std::cout << "Iterative form IK: \n"<< "[" << IK_iteration[0] << ", " << IK_iteration[1] << ", " << IK_iteration[2] << ", " <<  IK_iteration[3] <<  ", " << IK_iteration[4] << "]" << "\n"<< std::endl;
 	std::cout << "Singularity cheker: \n"<< singularity << "\n" << std::endl;
+        std::cout << "0 means no Singularity \n" << "\n" << std::endl;
 	std::cout << "\n" << std::endl;
-
+        
+        
 	//JOINT3
 	T = object.forward_kine(pose3_values, 5);
 	jacobian = object.get_jacobian(pose3_values);
 	IK_closed = object.inverse_kine_closed_form(T);
-	IK_ite = object.inverse_kine_ite(T, pose3_values);
+        curr_joint[0] = pose3_values[0]; curr_joint[1] = pose3_values[1]; curr_joint[2] = pose3_values[2]; curr_joint[3] = pose3_values[3]; curr_joint[4] = pose3_values[4];
+	IK_ite = object.inverse_kine_ite(T, curr_joint);
     singularity = object.check_singularity(pose3_values);
 	std::cout << "///// JOINT 3 /////" << std::endl;
 	std::cout << "The input joint values are: \n" << "[" << pose3_values[0] << ", " << pose3_values[1] << ", " << pose3_values[2] << ", " << pose3_values[3] << ", " << pose3_values[4] << "]" << "\n" << std::endl;
 	std::cout << "Jacobian: \n"<< jacobian << "\n" << std::endl;
 	std::cout << "Closed form IK: \n"<< IK_closed << "\n" << std::endl;
-	std::cout << "Iterative form IK: \n"<< IK_ite << std::endl;
+	//std::cout << "Iterative form IK: \n"<< IK_ite << std::endl;
+        for(int k=0; k<5; k++)
+	{
+	    IK_iteration[k] = *IK_ite;
+            IK_ite++;
+	}
+	std::cout << "Iterative form IK: \n"<< "[" << IK_iteration[0] << ", " << IK_iteration[1] << ", " << IK_iteration[2] << ", " <<  IK_iteration[3] <<  ", " << IK_iteration[4] << "]" << "\n"<< std::endl;
 	std::cout << "Singularity cheker: \n"<< singularity << "\n" << std::endl;
+        std::cout << "0 means no Singularity \n" << "\n" << std::endl;
 	std::cout << "\n" << std::endl;
 
 	//JOINT4
 	T = object.forward_kine(pose4_values, 5);
 	jacobian = object.get_jacobian(pose4_values);
 	IK_closed = object.inverse_kine_closed_form(T);
-	IK_ite = object.inverse_kine_ite(T, pose4_values);
+        curr_joint[0] = pose4_values[0]; curr_joint[1] = pose4_values[1]; curr_joint[2] = pose4_values[2]; curr_joint[3] = pose4_values[3]; curr_joint[4] = pose4_values[4];
+	IK_ite = object.inverse_kine_ite(T, curr_joint);
     singularity = object.check_singularity(pose4_values);
 	std::cout << "///// JOINT 4 /////" << std::endl;
 	std::cout << "The input joint values are: \n" << "[" << pose4_values[0] << ", " << pose4_values[1] << ", " << pose4_values[2] << ", " << pose4_values[3] << ", " << pose4_values[4] << "]" << "\n" << std::endl;
 	std::cout << "Jacobian: \n"<< jacobian << "\n" << std::endl;
 	std::cout << "Closed form IK: \n"<< IK_closed << "\n" << std::endl;
-	std::cout << "Iterative form IK: \n"<< IK_ite << std::endl;
+	//std::cout << "Iterative form IK: \n"<< IK_ite << std::endl;
+        for(int k=0; k<5; k++)
+	{
+	    IK_iteration[k] = *IK_ite;
+            IK_ite++;
+	}
+	std::cout << "Iterative form IK: \n"<< "[" << IK_iteration[0] << ", " << IK_iteration[1] << ", " << IK_iteration[2] << ", " <<  IK_iteration[3] <<  ", " << IK_iteration[4] << "]" << "\n"<< std::endl;
 	std::cout << "Singularity cheker: \n"<< singularity << "\n" << std::endl;
+        std::cout << "0 means no Singularity \n" << "\n" << std::endl;
 	std::cout << "\n" << std::endl;
 
 	//JOINT5
 	T = object.forward_kine(pose5_values, 5);
 	jacobian = object.get_jacobian(pose5_values);
 	IK_closed = object.inverse_kine_closed_form(T);
-	IK_ite = object.inverse_kine_ite(T, pose5_values);
+        curr_joint[0] = pose5_values[0]; curr_joint[1] = pose5_values[1]; curr_joint[2] = pose5_values[2]; curr_joint[3] = pose5_values[3]; curr_joint[4] = pose5_values[4];
+	IK_ite = object.inverse_kine_ite(T, curr_joint);
     singularity = object.check_singularity(pose5_values);
 	std::cout << "///// JOINT 5 /////" << std::endl;
 	std::cout << "The input joint values are: \n" << "[" << pose5_values[0] << ", " << pose5_values[1] << ", " << pose5_values[2] << ", " << pose5_values[3] << ", " << pose5_values[4] << "]" << "\n" << std::endl;
 	std::cout << "Jacobian: \n"<< jacobian << "\n" << std::endl;
 	std::cout << "Closed form IK: \n"<< IK_closed << "\n" << std::endl;
-	std::cout << "Iterative form IK: \n"<< IK_ite << std::endl;
+	//std::cout << "Iterative form IK: \n"<< IK_ite << std::endl;
+        for(int k=0; k<5; k++)
+	{
+	    IK_iteration[k] = *IK_ite;
+            IK_ite++;
+	}
+	std::cout << "Iterative form IK: \n"<< "[" << IK_iteration[0] << ", " << IK_iteration[1] << ", " << IK_iteration[2] << ", " <<  IK_iteration[3] <<  ", " << IK_iteration[4] << "]" << "\n"<< std::endl;
 	std::cout << "Singularity cheker: \n"<< singularity << "\n" << std::endl;
+        std::cout << "0 means no Singularity \n" << "\n" << std::endl;
 	std::cout << "\n" << std::endl;
+       
 }
 
 int main(int argc, char **argv)

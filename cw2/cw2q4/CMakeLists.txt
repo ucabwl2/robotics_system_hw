@@ -38,3 +38,4 @@ add_library(${PROJECT_NAME}
         src/youbotKine.cpp
         ${HEADER_FILES}
 )
+

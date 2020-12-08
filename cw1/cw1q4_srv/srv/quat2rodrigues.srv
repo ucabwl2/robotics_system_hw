@@ -1,3 +1,5 @@
-geometry_msgs/Point p
+geometry_msgs/Quaternion q
 ---
-geometry_msgs/Point p
+std_msgs/Float64 x
+std_msgs/Float64 y
+std_msgs/Float64 z

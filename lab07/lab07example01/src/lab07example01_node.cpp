@@ -16,7 +16,8 @@ int main(int argc, char **argv)
 
     //Specify the mode (Read/Write)
     //Check the definition of "MY_BAG_PATH" in the CMakeLists.txt
-    mybag.open(MY_BAG_PATH, rosbag::bagmode::Read);
+    //mybag.open(MY_BAG_PATH, rosbag::bagmode::Read);
+    mybag.open(MY_BAG_A, rosbag::bagmode::Read);
 
     std::vector<std::string> topics;
     topics.push_back(std::string("my_joint_states"));
@@ -54,11 +55,15 @@ int main(int argc, char **argv)
                             my_pt.time_from_start.sec = tfs;
                             for (int i = 0; i < 5;i++)
                             {
+                                std::cout << "i" << i << std::endl;
                                 my_pt.positions.at(i) = J->position.at(i);
+                                std::cout << "J->position.at(i)" << J->position.at(i) << std::endl;
+                                std::cout << J->position.at(i) << std::endl;
                                 my_pt.velocities.at(i) = J->velocity.at(i);
+                                std::cout << "J->velocity.at(i)" << J->velocity.at(i) << std::endl;
+                                std::cout << J->velocity.at(i) << std::endl;
                             }
                             my_traj.points.push_back(my_pt);
-
                             tfs = tfs + 4;
                         }
                     }

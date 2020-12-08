@@ -42,7 +42,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES example_msg_srv
-  CATKIN_DEPENDS message_runtime roscpp rospy std_msgs geometry_msgs
+  CATKIN_DEPENDS message_runtime roscpp rospy geometry_msgs std_msgs
 #  DEPENDS system_lib
 )
 

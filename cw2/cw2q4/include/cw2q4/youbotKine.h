@@ -25,6 +25,8 @@ protected:
     double current_joint_position[5];
 
 public:
+    /*youbot_kinematic (ros::NodeHandle &nh);*/
+
     void init();
     void joint_state_callback(const sensor_msgs::JointState::ConstPtr &q);
     Matrix4d forward_kine(double joint_val[], int frame);
@@ -35,6 +37,10 @@ public:
     double* inverse_kine_ite(Matrix4d pose, double joint_val[]);
     bool check_singularity(double joint_val[]);
     Matrix4d dh_matrix_standard(double a, double alpha, double d, double theta);
+    //////////////////////////////
+    MatrixXd convert_rotmat2quat(Matrix3d rotmat);
+    /////////////////////////////
+    MatrixXd convert_quat2rodrigues(MatrixXd quat);
 };
 
 

@@ -18,6 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
 )
 
+
 add_definitions(-DMY_BAG_A="${PROJECT_SOURCE_DIR}/bags/data1.bag")
 add_definitions(-DMY_BAG_B="${PROJECT_SOURCE_DIR}/bags/data2.bag")
 add_definitions(-DMY_BAG_C="${PROJECT_SOURCE_DIR}/bags/data3.bag")
@@ -43,3 +44,5 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
 )
+
+

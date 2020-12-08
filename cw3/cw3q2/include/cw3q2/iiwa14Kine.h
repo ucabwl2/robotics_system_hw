@@ -30,6 +30,7 @@ protected:
     double DH_params[7][4];
 
 
+
 public:
     void init();
     void joint_state_callback(const sensor_msgs::JointState::ConstPtr &q);
@@ -44,6 +45,10 @@ public:
     VectorXd getG(VectorXd joint_val);
     MatrixXd forward_kine_cm(VectorXd joint_val, int frame);
     MatrixXd get_jacobian_cm(VectorXd joint_val, int frame);
+    MatrixXd convert_quat2rodrigues(MatrixXd quat);
+    MatrixXd convert_rotmat2quat(Matrix3d rotmat);
+    double get_psi( Matrix4d pose ,VectorXd joint_val);
+    
 
 };
 

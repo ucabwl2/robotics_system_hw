@@ -18,13 +18,17 @@ int main(int argc, char **argv)
     while (nh.ok())
     {
 	srand(time(0));
-        srv.request.x.data = fRand(-2.0, 2.0);
-	srand(time(0));
-	srv.request.y.data = fRand(-1.8, 1.7);
-	srand(time(0));
-	srv.request.z.data = fRand(-2.9, 1.6);
+        //srv.request.q.data = geometry_msgs::Quaternion(-0.228,-0.222,-0.555,0.768);
+        srv.request.q.x = 0.0;
+        srv.request.q.y = 0.7071068;
+        srv.request.q.z= 0.7071068;
+        srv.request.q.w = 0.0;
+	//srand(time(0));
+	//srv.request.y.data = fRand(-1.8, 1.7);
+	//srand(time(0));
+	//srv.request.z.data = fRand(-2.9, 1.6);
 	if (c.call(srv))
-        	ROS_INFO("The resulting quaternion (qx, qy, qz, qw): (%.3f, %.3f, %.3f, %.3f)\n", srv.response.q.x, srv.response.q.y, srv.response.q.z, srv.response.q.w);
+        	ROS_INFO("The resulting RPY: (%.3f, %.3f, %.3f)\n", srv.response.x, srv.response.y, srv.response.z);
 
         usleep(10000);
     }
